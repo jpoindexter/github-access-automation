@@ -158,8 +158,8 @@ describe('OAuth Callback Handler', () => {
 
       expect(response.status).toBe(302);
       expect(response.headers.get('location')).toContain('polar.sh/checkout');
-      expect(response.headers.get('location')).toContain('github_username=testuser');
-      expect(response.headers.get('location')).toContain('github_user_id=12345');
+      expect(response.headers.get('location')).toContain('gh_username=testuser');
+      expect(response.headers.get('location')).toContain('gh_user_id=12345');
 
       expect(mockAuthLogger.info).toHaveBeenCalledWith('GitHub OAuth successful', {
         username: 'testuser',

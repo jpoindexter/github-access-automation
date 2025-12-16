@@ -160,7 +160,7 @@ describe('GitHub OAuth', () => {
       });
 
       expect(fetch).toHaveBeenCalledWith(
-        'https://api.github.com/login/oauth/access_token',
+        'https://github.com/login/oauth/access_token',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({

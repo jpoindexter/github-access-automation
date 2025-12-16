@@ -43,25 +43,22 @@ describe('Polar Webhook', () => {
       expect(result).toBe(false);
     });
 
-    it('should use empty string when POLAR_WEBHOOK_SECRET is not set', async () => {
+    it('should return false when POLAR_WEBHOOK_SECRET is not set', async () => {
+      vi.unstubAllEnvs(); // Clear all envs including the secret
       delete process.env.POLAR_WEBHOOK_SECRET;
-      vi.resetModules();
 
       const { verifyPolarWebhookSignature: verifySig } = await import(
         '../polar-webhook'
       );
 
-      // Calculate HMAC with empty secret
       const payload = '{"type":"order.paid"}';
-      const expectedSignature = createHmac('sha256', '')
-        .update(payload)
-        .digest('hex');
+      const signature = 'some_signature';
 
-      const result = verifySig(payload, expectedSignature);
-      expect(result).toBe(true);
+      const result = verifySig(payload, signature);
+      expect(result).toBe(false);
 
-      // Restore the env var
-      process.env.POLAR_WEBHOOK_SECRET = 'test_secret';
+      // Restore the env var for other tests
+      vi.stubEnv('POLAR_WEBHOOK_SECRET', 'test_secret');
     });
 
     it('should handle matching signatures of same length', () => {
