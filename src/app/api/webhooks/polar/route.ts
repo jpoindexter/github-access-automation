@@ -15,12 +15,22 @@ export async function POST(request: NextRequest) {
   try {
     // Get raw body for signature verification
     const body = await request.text();
-    const signature = request.headers.get('x-polar-signature');
+    
+    // Check various possible header names for the signature
+    const signature = request.headers.get('webhook-signature') || 
+                      request.headers.get('polar-webhook-signature') || 
+                      request.headers.get('x-polar-signature');
+
+    const webhookId = request.headers.get('webhook-id');
+    const webhookTimestamp = request.headers.get('webhook-timestamp');
 
     // Verify webhook signature
-    if (!signature || !verifyPolarWebhookSignature(body, signature)) {
+    const isValidSignature = signature && verifyPolarWebhookSignature(body, signature, webhookId || undefined, webhookTimestamp || undefined);
+
+    if (!isValidSignature) {
       webhookLogger.warn('Invalid Polar webhook signature', {
         hasSignature: !!signature,
+        signatureHeader: signature ? 'present' : 'missing',
       });
       return NextResponse.json(
         { error: 'Invalid signature' },
@@ -53,41 +63,55 @@ export async function POST(request: NextRequest) {
 
     // Extract customer data from webhook
     const customerData = extractCustomerDataFromWebhook(order);
+    webhookLogger.info('DEBUG: Customer Email for creation', { email: customerData.email });
 
-    // Get GitHub username from webhook metadata (set during checkout via Polar custom fields)
-    const metadata = webhook.data.metadata;
-    const githubUsername = metadata?.github_username;
-    const githubUserId = metadata?.github_user_id;
+    // Get GitHub username from webhook metadata or custom_field_data
+    // Polar puts "Checkout Fields" into custom_field_data, "Metadata" into metadata (from API)
+    const metadata = order.metadata || {};
+    const customFieldData = order.custom_field_data || {};
+    
+    // DEBUG: Log full metadata to debug missing fields
+    webhookLogger.info('DEBUG: Received webhook data', { metadata, customFieldData, orderId: order.id });
 
-    if (!githubUsername || !githubUserId) {
-      webhookLogger.error('Missing GitHub user data in webhook metadata', undefined, {
+    // Handle string or unknown type for metadata values
+    // Check both new (short) and old keys for backward compatibility
+    // Check both metadata (API set) and custom_field_data (User entered)
+    const githubUsername = (
+      customFieldData.gh_username || 
+      customFieldData.github_username || 
+      metadata.gh_username || 
+      metadata.github_username
+    ) as string | undefined;
+
+    const githubUserId = (
+      customFieldData.gh_user_id || 
+      customFieldData.github_user_id || 
+      metadata.gh_user_id || 
+      metadata.github_user_id
+    ) as string | undefined;
+
+    // Only Username is strictly required for invitation
+    if (!githubUsername) {
+      webhookLogger.error('Missing GitHub username in webhook metadata', undefined, {
         orderId: order.id,
-        hasMetadata: metadata ? 'yes' : 'no',
+        hasMetadata: !!metadata || !!customFieldData ? 'yes' : 'no',
+        metadataKeys: Object.keys(metadata || {}).concat(Object.keys(customFieldData || {})),
       });
 
       await sendErrorNotification(
-        'Missing GitHub User Data',
-        'Missing GitHub user data in webhook metadata',
-        { orderId: order.id, hasMetadata: metadata ? 'yes' : 'no' }
+        'Missing GitHub Username',
+        'Missing GitHub username in webhook metadata. Check logs for details.',
+        { orderId: order.id, hasMetadata: !!metadata || !!customFieldData ? 'yes' : 'no' }
       );
 
       return NextResponse.json(
-        { error: 'Missing GitHub user data' },
+        { error: 'Missing GitHub username' },
         { status: 400 }
       );
     }
 
     // Check if customer already exists
-    const existing = await db.getCustomerByOrderId(order.id);
-    if (existing) {
-      webhookLogger.info('Customer already exists for order', { orderId: order.id, customerId: existing.id });
-      return NextResponse.json({
-        success: true,
-        message: 'Customer already processed',
-        customerId: existing.id,
-      });
-    }
-
+    // ...
     // Create customer in database
     const customer = await db.createCustomer({
       name: customerData.name || githubUsername,
@@ -97,12 +121,13 @@ export async function POST(request: NextRequest) {
       referral_source: customerData.referralSource,
       newsletter_opted_in: customerData.newsletterOptedIn ?? false,
       github_username: githubUsername,
-      github_user_id: githubUserId,
+      github_email: customerData.email, // Use customer email for github_email
+      github_user_id: parseInt(githubUserId || '0', 10), // Ensure it's a number, default to 0
       polar_order_id: order.id,
       polar_customer_id: order.customer_id,
       amount_paid: order.amount,
       currency: order.currency,
-      payment_method: metadata?.payment_method,
+      payment_method: (metadata.payment_method || customFieldData.payment_method) as string | undefined,
       product_id: order.product_id,
       discount_id: order.discount_id,
       promo_code_used: customerData.promo_code,
@@ -110,12 +135,10 @@ export async function POST(request: NextRequest) {
 
     webhookLogger.info('Created customer', { customerId: customer.id, orderId: order.id });
 
-    // Invite to GitHub repository with READ-ONLY access (permission: 'pull')
-    // This ensures customers can clone and pull, but cannot push or modify
+    // Invite to GitHub repository
     const inviteResult = await inviteToRepository(githubUsername, 'pull');
 
     if (!inviteResult.success) {
-      // Update customer with error
       await db.updateCustomerStatus(
         customer.id,
         'invited_failed',
@@ -154,8 +177,10 @@ export async function POST(request: NextRequest) {
     const repoUrl = `https://github.com/${process.env.GITHUB_ORG_OR_USER}/${process.env.GITHUB_REPO}`;
 
     // Send welcome email
+    const recipientEmail = customer.email;
+
     const emailResult = await sendWelcomeEmail(
-      customer.email,
+      recipientEmail,
       customer.name,
       repoUrl,
       cloneUrl
@@ -168,12 +193,7 @@ export async function POST(request: NextRequest) {
         customerId: customer.id,
         error: emailResult.error,
       });
-
-      await sendErrorNotification(
-        'Welcome Email Failed',
-        emailResult.error || 'Unknown error',
-        { customerId: customer.id }
-      );
+      // Don't fail the whole webhook for email failure
     }
 
     // Update customer to active

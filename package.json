@@ -40,7 +40,8 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@octokit/rest": "^20.0.0",
+    "@octokit/rest": "^20.1.2",
+    "dotenv": "^17.2.3",
     "next": "^16.0.0",
     "pg": "^8.11.0",
     "react": "^19.0.0",

@@ -79,8 +79,8 @@ export interface OAuthSession {
  * Data passed from checkout to webhook via Polar metadata
  */
 export interface PolarWebhookMetadata {
-  github_username: string;
-  github_user_id: number;
+  github_username?: string; // Made optional as it might be in custom_field_data
+  github_user_id?: number; // Made optional as it might be in custom_field_data
   email?: string;
   name?: string;
   company?: string;
@@ -89,6 +89,15 @@ export interface PolarWebhookMetadata {
   newsletter_opted_in?: boolean;
   payment_method?: string;
   promo_code?: string;
+  // Allow other arbitrary properties
+  [key: string]: any;
+}
+
+export interface PolarCustomFieldData {
+  gh_username?: string;
+  gh_user_id?: string; // Can be string as it's from input field
+  // Allow other arbitrary custom fields
+  [key: string]: any;
 }
 
 /**
@@ -114,6 +123,7 @@ export interface PolarOrder {
   discount_id?: string; // UUID
   organization_id: string; // UUID
   metadata?: PolarWebhookMetadata;
+  custom_field_data?: PolarCustomFieldData; // Add custom field data
 }
 
 /**

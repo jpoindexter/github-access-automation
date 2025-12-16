@@ -11,19 +11,54 @@ const MAX_WEBHOOK_AGE_MS = 5 * 60 * 1000;
 
 /**
  * Verify Polar webhook signature
- * Ensures webhook came from Polar and hasn't been tampered with
+ * Supports Standard Webhooks (v1) and legacy formats
  */
 export function verifyPolarWebhookSignature(
   payload: string,
-  signature: string
+  signatureHeader: string,
+  id?: string,
+  timestamp?: string
 ): boolean {
   const secret = process.env.POLAR_WEBHOOK_SECRET || '';
+  if (!secret) return false;
 
-  // Calculate HMAC-SHA256 of payload using secret
-  const hash = createHmac('sha256', secret).update(payload).digest('hex');
+  // Handle multiple signatures (space separated)
+  // Format: "v1,signature" or just "signature" (legacy)
+  const signatures = signatureHeader.split(' ').map(s => {
+    const parts = s.split(',');
+    if (parts.length === 2) {
+      return { scheme: parts[0], value: parts[1] };
+    }
+    return { scheme: 'legacy', value: s };
+  });
 
-  // Use Node.js built-in timing-safe comparison
-  return constantTimeCompare(hash, signature);
+  // Strategy 1: Standard Webhooks (id.timestamp.payload) -> Base64
+  if (id && timestamp) {
+    const toSign = `${id}.${timestamp}.${payload}`;
+    const hash = createHmac('sha256', secret).update(toSign).digest('base64');
+    
+    if (signatures.some(s => s.scheme === 'v1' && constantTimeCompare(s.value, hash))) {
+      return true;
+    }
+  }
+
+  // Strategy 2: Timestamp + Payload (timestamp.payload) -> Base64
+  if (timestamp) {
+    const toSign = `${timestamp}.${payload}`;
+    const hash = createHmac('sha256', secret).update(toSign).digest('base64');
+    
+    if (signatures.some(s => s.scheme === 'v1' && constantTimeCompare(s.value, hash))) {
+      return true;
+    }
+  }
+
+  // Strategy 3: Raw Payload (legacy) -> Hex
+  const hashHex = createHmac('sha256', secret).update(payload).digest('hex');
+  if (signatures.some(s => (s.scheme === 'legacy' || s.scheme === 'v1') && constantTimeCompare(s.value, hashHex))) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -32,8 +67,8 @@ export function verifyPolarWebhookSignature(
  * regardless of where strings differ
  */
 function constantTimeCompare(a: string, b: string): boolean {
-  // timingSafeEqual requires equal length buffers
-  // Pad shorter string to prevent length-based timing leaks
+  if (!a || !b) return false;
+  
   const maxLen = Math.max(a.length, b.length);
   const bufferA = Buffer.alloc(maxLen);
   const bufferB = Buffer.alloc(maxLen);
@@ -43,6 +78,7 @@ function constantTimeCompare(a: string, b: string): boolean {
 
   // First compare lengths, then contents (both in constant time)
   const lengthsMatch = a.length === b.length;
+  // @ts-ignore - buffer comparison is valid
   const contentsMatch = timingSafeEqual(bufferA, bufferB);
 
   return lengthsMatch && contentsMatch;
@@ -53,7 +89,15 @@ function constantTimeCompare(a: string, b: string): boolean {
  * Rejects webhooks older than MAX_WEBHOOK_AGE_MS
  */
 export function validateWebhookTimestamp(timestamp: string): boolean {
-  const webhookTime = new Date(timestamp).getTime();
+  let webhookTime: number;
+
+  // Check if it's unix timestamp (digits only)
+  if (/^\d+$/.test(timestamp)) {
+    webhookTime = parseInt(timestamp, 10) * 1000; // convert to ms
+  } else {
+    webhookTime = new Date(timestamp).getTime();
+  }
+
   const now = Date.now();
 
   // Reject if timestamp is in the future (clock skew > 1 minute)

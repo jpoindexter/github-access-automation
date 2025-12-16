@@ -77,6 +77,12 @@ export const db = {
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
       )
+      ON CONFLICT (email) DO UPDATE SET
+        polar_order_id = EXCLUDED.polar_order_id,
+        amount_paid = EXCLUDED.amount_paid,
+        product_id = EXCLUDED.product_id,
+        github_username = EXCLUDED.github_username,
+        updated_at = NOW()
       RETURNING *;
     `;
 

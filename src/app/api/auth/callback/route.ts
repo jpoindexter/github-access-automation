@@ -10,7 +10,7 @@ import { db } from '@/lib/db';
 import { authLogger } from '@/lib/logger';
 
 // Allowed redirect domains for open redirect protection
-const ALLOWED_REDIRECT_DOMAINS = ['polar.sh', 'www.polar.sh'];
+const ALLOWED_REDIRECT_DOMAINS = ['polar.sh', 'www.polar.sh', 'sandbox.polar.sh', 'sandbox-api.polar.sh'];
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,8 +80,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Pass GitHub username as query param for Polar custom field prefill
-    redirectUrl.searchParams.set('github_username', user.login);
-    redirectUrl.searchParams.set('github_user_id', user.id.toString());
+    // Using shorter keys to avoid conflict with potentially deleted fields in Polar
+    redirectUrl.searchParams.set('gh_username', user.login);
+    redirectUrl.searchParams.set('gh_user_id', user.id.toString());
+
+    authLogger.info('Redirecting to Polar checkout', { url: redirectUrl.toString() });
 
     const response = NextResponse.redirect(redirectUrl.toString(), { status: 302 });
 
@@ -109,10 +112,12 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     authLogger.error('GitHub OAuth callback failed', error);
+    console.error('Full OAuth Error:', error); // Add console log for immediate visibility
 
     return NextResponse.json(
       {
         error: 'Failed to complete GitHub authentication',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

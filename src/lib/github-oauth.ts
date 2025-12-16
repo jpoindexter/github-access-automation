@@ -8,7 +8,7 @@ import { GitHubUser, GitHubOAuthToken } from '@/types';
 import { authLogger } from '@/lib/logger';
 
 const GITHUB_AUTHORIZE_URL = 'https://github.com/login/oauth/authorize';
-const GITHUB_TOKEN_URL = 'https://api.github.com/login/oauth/access_token';
+const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const GITHUB_USER_URL = 'https://api.github.com/user';
 
 /**
