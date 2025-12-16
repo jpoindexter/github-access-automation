@@ -1,0 +1,260 @@
+# ============================================
+# GitHub Access Automation - .gitignore
+# Industry-standard Node.js/Next.js configuration
+# ============================================
+
+# ================== Dependencies ==================
+node_modules/
+.pnp
+.pnp.js
+.pnp.cjs
+.yarn/install-state.gz
+
+# ================== Build Output ==================
+.next/
+out/
+build/
+dist/
+.turbo/
+
+# ================== Testing ==================
+coverage/
+.nyc_output/
+*.lcov
+.jest/
+
+# ================== Environment Variables ==================
+# NEVER commit secrets
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env*.local
+
+# ================== IDE & Editors ==================
+# VS Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# JetBrains (WebStorm, IntelliJ)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+.elc
+auto-save-list
+tramp
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ================== OS Generated ==================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+
+# ================== Logs ==================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# ================== Runtime Data ==================
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ================== TypeScript ==================
+*.tsbuildinfo
+next-env.d.ts
+.next/types/**/*.ts
+
+# ================== Package Managers ==================
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# pnpm
+.pnpm-store/
+
+# ================== Vercel ==================
+.vercel/
+
+# ================== Debug ==================
+.debug/
+debug.log
+
+# ================== Misc ==================
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# ================== Claude/AI ==================
+.claude/
+
+# ================== Prisma ==================
+# Uncomment if using Prisma
+# prisma/dev.db
+# prisma/dev.db-journal
+# prisma/migrations/**/migration_lock.toml
+
+# ================== Sentry ==================
+.sentryclirc
+
+# ================== Optional: Local Config ==================
+# Uncomment if you want to exclude local configs
+# config.local.js
+# config.local.ts
+
+# ================== Temporary Files ==================
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# ================== Compressed Files ==================
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# ================== Database ==================
+*.sqlite
+*.sqlite3
+*.db
+
+# ================== Certificates ==================
+*.pem
+*.key
+*.csr
+*.crt
+
+# ================== Secrets (additional patterns) ==================
+# Be careful with broad patterns - only ignore specific secret files
+.secrets/
+secrets.json
+credentials.json
+service-account*.json
+*.env*
+!.env.example
+
+# ================== Docker ==================
+.docker/
+docker-compose.override.yml
+docker-compose.local.yml
+
+# ================== Playwright/E2E Testing ==================
+playwright-report/
+playwright/.cache/
+test-results/
+e2e-results/
+
+# ================== Storybook ==================
+storybook-static/
+
+# ================== Next.js Specific ==================
+.next/
+out/
+.swc/
+
+# ================== Turborepo ==================
+.turbo/
+
+# ================== Bundle Analysis ==================
+.next/analyze/
+bundle-stats.json
+webpack-stats.json
+
+# ================== Local Development ==================
+.local/
+*.local.json
+*.local.ts
+*.local.js
+
+# ================== Backups ==================
+backups/
+*.bak
+*.backup
+*.old
+
+# ================== NPM ==================
+.npm/
+.npmrc.local
+
+# ================== ESLint ==================
+.eslintcache
+
+# ================== Prettier ==================
+.prettiercache
+
+# ================== Husky ==================
+# Don't ignore .husky - it should be committed
+# .husky/
+
+# ================== Vitest ==================
+vitest.config.ts.timestamp*
+
+# ================== Documentation Build ==================
+docs/_build/
+.docusaurus/
+typedoc-output/
+
+# ================== Generated Files ==================
+generated/
+*.generated.ts
+*.generated.js
+
+# ================== Health Check Temp Files ==================
+health-check.tmp
+
+# ================== Lock Files (keep one, ignore others) ==================
+# Keep package-lock.json, ignore others if not using them
+# yarn.lock
+# pnpm-lock.yaml
+# bun.lockb

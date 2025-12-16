@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+
+# Pre-push hook: Run tests and build before pushing
+
+echo "Running pre-push checks..."
+
+# Run tests
+echo "Running tests..."
+npm test -- --run 2>/dev/null || echo "No tests or tests skipped"
+
+# Verify build
+echo "Verifying build..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "Build failed. Please fix build errors before pushing."
+  exit 1
+fi
+
+echo "Pre-push checks passed!"

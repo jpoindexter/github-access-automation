@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+# Pre-commit hook: Type check and lint staged files
+
+echo "Running pre-commit checks..."
+
+# Type check
+echo "Type checking..."
+npm run type-check
+if [ $? -ne 0 ]; then
+  echo "Type check failed. Please fix TypeScript errors before committing."
+  exit 1
+fi
+
+# Lint staged files
+echo "Linting staged files..."
+npx lint-staged
+if [ $? -ne 0 ]; then
+  echo "Linting failed. Please fix lint errors before committing."
+  exit 1
+fi
+
+echo "Pre-commit checks passed!"

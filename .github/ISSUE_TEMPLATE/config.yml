@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/jpoindexter/github-access-automation#readme
+    about: Check the documentation before opening an issue
+  - name: Discussions
+    url: https://github.com/jpoindexter/github-access-automation/discussions
+    about: Ask questions and discuss features
+  - name: Security Issues
+    url: https://github.com/jpoindexter/github-access-automation/security/advisories/new
+    about: Report security vulnerabilities privately

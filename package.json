@@ -1,0 +1,67 @@
+{
+  "name": "github-access-automation",
+  "version": "1.0.0",
+  "description": "Automated GitHub repo access provisioning after purchase - handles OAuth, payments, and invitations",
+  "private": true,
+  "author": "Jason Poindexter",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jpoindexter/github-access-automation"
+  },
+  "keywords": [
+    "github",
+    "automation",
+    "oauth",
+    "polar",
+    "webhook",
+    "boilerplate",
+    "saas"
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src --ext .ts,.tsx",
+    "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint src --ext .ts,.tsx --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "validate": "npm run type-check && npm run lint && npm run format:check",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest watch",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "db:backup": "bash scripts/backup.sh",
+    "db:reset": "npm run db:migrate && npm run db:seed",
+    "clean": "rm -rf .next node_modules/.cache",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@octokit/rest": "^20.0.0",
+    "next": "^16.0.0",
+    "pg": "^8.11.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^3.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/pg": "^8.11.0",
+    "@types/react": "^19.2.7",
+    "@vitest/coverage-v8": "^4.0.16",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^15.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0",
+    "vitest": "^4.0.16"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

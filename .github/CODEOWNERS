@@ -1,0 +1,20 @@
+# CODEOWNERS - Defines code ownership for review requirements
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @jpoindexter
+
+# Security-critical files require security review
+/src/lib/polar-webhook.ts @jpoindexter
+/src/lib/github-oauth.ts @jpoindexter
+/src/app/api/webhooks/ @jpoindexter
+/src/app/api/auth/ @jpoindexter
+/src/middleware.ts @jpoindexter
+
+# CI/CD and infrastructure
+/.github/ @jpoindexter
+/Dockerfile @jpoindexter
+/docker-compose.yml @jpoindexter
+
+# Database schema changes
+/database/ @jpoindexter
