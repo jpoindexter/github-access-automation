@@ -244,4 +244,51 @@ describe('Email Service', () => {
       expect(result.error).toBe('Email service down');
     });
   });
+
+  describe('default email fallbacks', () => {
+    it('should use default FROM_EMAIL when env var is not set', async () => {
+      // Clear the env vars and reset modules
+      delete process.env.RESEND_FROM_EMAIL;
+      vi.resetModules();
+
+      mockSend.mockResolvedValueOnce({
+        data: { id: 'fallback_from_123' },
+        error: null,
+      });
+
+      const { sendEmail } = await import('@/lib/email');
+      await sendEmail({
+        to: 'user@example.com',
+        subject: 'Test with default from',
+        html: '<p>Test</p>',
+      });
+
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          from: 'noreply@example.com',
+        })
+      );
+    });
+
+    it('should use default ADMIN_EMAIL when env var is not set', async () => {
+      // Keep FROM_EMAIL set but remove ADMIN_EMAIL
+      process.env.RESEND_FROM_EMAIL = 'test@example.com';
+      delete process.env.ADMIN_EMAIL;
+      vi.resetModules();
+
+      mockSend.mockResolvedValueOnce({
+        data: { id: 'fallback_admin_123' },
+        error: null,
+      });
+
+      const { sendErrorNotification } = await import('@/lib/email');
+      await sendErrorNotification('Test Error', 'Error details');
+
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'admin@example.com',
+        })
+      );
+    });
+  });
 });

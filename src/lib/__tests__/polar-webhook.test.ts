@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { createHmac } from 'crypto';
 import {
   verifyPolarWebhookSignature,
   validateWebhookTimestamp,
@@ -15,10 +16,75 @@ describe('Polar Webhook', () => {
   describe('verifyPolarWebhookSignature', () => {
     it('should verify valid signature', () => {
       const payload = '{"type":"order.paid"}';
-      // Note: In real test, calculate actual HMAC-SHA256
-      // This test verifies the function runs without error
-      const result = verifyPolarWebhookSignature(payload, 'invalid_signature');
-      expect(typeof result).toBe('boolean');
+      // Calculate actual HMAC-SHA256
+      const secret = 'test_secret';
+      const expectedSignature = createHmac('sha256', secret)
+        .update(payload)
+        .digest('hex');
+
+      const result = verifyPolarWebhookSignature(payload, expectedSignature);
+      expect(result).toBe(true);
+    });
+
+    it('should reject invalid signature', () => {
+      const payload = '{"type":"order.paid"}';
+      const invalidSignature = 'invalid_signature_that_is_definitely_not_valid';
+
+      const result = verifyPolarWebhookSignature(payload, invalidSignature);
+      expect(result).toBe(false);
+    });
+
+    it('should reject signature with different length', () => {
+      const payload = '{"type":"order.paid"}';
+      // A shorter signature should fail
+      const shortSignature = 'short';
+
+      const result = verifyPolarWebhookSignature(payload, shortSignature);
+      expect(result).toBe(false);
+    });
+
+    it('should use empty string when POLAR_WEBHOOK_SECRET is not set', async () => {
+      delete process.env.POLAR_WEBHOOK_SECRET;
+      vi.resetModules();
+
+      const { verifyPolarWebhookSignature: verifySig } = await import(
+        '../polar-webhook'
+      );
+
+      // Calculate HMAC with empty secret
+      const payload = '{"type":"order.paid"}';
+      const expectedSignature = createHmac('sha256', '')
+        .update(payload)
+        .digest('hex');
+
+      const result = verifySig(payload, expectedSignature);
+      expect(result).toBe(true);
+
+      // Restore the env var
+      process.env.POLAR_WEBHOOK_SECRET = 'test_secret';
+    });
+
+    it('should handle matching signatures of same length', () => {
+      const payload = '{"test":"data"}';
+      const secret = 'test_secret';
+      const signature = createHmac('sha256', secret)
+        .update(payload)
+        .digest('hex');
+
+      // Same signature should match
+      const result = verifyPolarWebhookSignature(payload, signature);
+      expect(result).toBe(true);
+    });
+
+    it('should reject signatures with same length but different content', () => {
+      const payload = '{"type":"order.paid"}';
+      // Create a valid length signature but with wrong content
+      // SHA256 hex is 64 characters
+      const wrongSignature =
+        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+
+      const result = verifyPolarWebhookSignature(payload, wrongSignature);
+      expect(result).toBe(false);
     });
   });
 

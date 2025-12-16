@@ -353,6 +353,15 @@ describe('GitHub API', () => {
         'Failed to get collaborators: Permission denied'
       );
     });
+
+    it('should throw error with Unknown error for non-Error objects', async () => {
+      mockListCollaborators.mockRejectedValueOnce('String error');
+
+      const githubApi = await import('@/lib/github-api');
+      await expect(githubApi.getRepositoryCollaborators()).rejects.toThrow(
+        'Failed to get collaborators: Unknown error'
+      );
+    });
   });
 
   describe('removeFromRepository', () => {
@@ -416,6 +425,46 @@ describe('GitHub API', () => {
       expect(result).toEqual({
         https: 'https://github.com/test-org/test-repo.git',
         ssh: 'git@github.com:test-org/test-repo.git',
+      });
+    });
+  });
+
+  describe('environment variable fallbacks', () => {
+    it('should use empty strings when GITHUB_ORG_OR_USER is not set', async () => {
+      delete process.env.GITHUB_ORG_OR_USER;
+      vi.resetModules();
+
+      const githubApi = await import('@/lib/github-api');
+      const result = githubApi.getRepositoryCloneUrl();
+
+      // Should use empty string for owner
+      expect(result.https).toBe('https://github.com//test-repo.git');
+    });
+
+    it('should use empty strings when GITHUB_REPO is not set', async () => {
+      process.env.GITHUB_ORG_OR_USER = 'test-org';
+      delete process.env.GITHUB_REPO;
+      vi.resetModules();
+
+      const githubApi = await import('@/lib/github-api');
+      const result = githubApi.getRepositoryCloneUrl();
+
+      // Should use empty string for repo
+      expect(result.https).toBe('https://github.com/test-org/.git');
+    });
+
+    it('should use empty strings when both env vars are not set', async () => {
+      delete process.env.GITHUB_ORG_OR_USER;
+      delete process.env.GITHUB_REPO;
+      vi.resetModules();
+
+      const githubApi = await import('@/lib/github-api');
+      const result = githubApi.getRepositoryCloneUrl();
+
+      // Both should be empty
+      expect(result).toEqual({
+        https: 'https://github.com//.git',
+        ssh: 'git@github.com:/.git',
       });
     });
   });

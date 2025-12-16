@@ -473,5 +473,56 @@ describe('Logger', () => {
       expect(logOutput).toContain('INFO');
       expect(logOutput).toContain('Test message');
     });
+
+    it('should handle timestamp without T separator (fallback to full timestamp)', async () => {
+      process.env.NODE_ENV = 'development';
+      vi.resetModules();
+      const { logger } = await import('@/lib/logger');
+
+      // Create a mock that intercepts Date.prototype.toISOString to return a non-standard format
+      const originalToISOString = Date.prototype.toISOString;
+      Date.prototype.toISOString = () => '2025-01-01 12:00:00'; // No 'T' separator
+
+      logger.info('Test with non-standard timestamp');
+
+      Date.prototype.toISOString = originalToISOString;
+
+      const logOutput = consoleInfoSpy.mock.calls[0][0];
+      expect(logOutput).toContain('INFO');
+      expect(logOutput).toContain('Test with non-standard timestamp');
+    });
+  });
+
+  describe('error stack handling edge cases', () => {
+    it('should handle Error object without stack trace', async () => {
+      process.env.NODE_ENV = 'development';
+      vi.resetModules();
+      const { logger } = await import('@/lib/logger');
+
+      // Create an error without a stack trace
+      const errorWithoutStack = new Error('Error without stack');
+      delete (errorWithoutStack as { stack?: string }).stack;
+
+      logger.error('Error with missing stack', errorWithoutStack);
+
+      const logOutput = consoleErrorSpy.mock.calls[0][0];
+      expect(logOutput).toContain('Error with missing stack');
+      expect(logOutput).toContain('Error without stack');
+    });
+  });
+
+  describe('environment fallback', () => {
+    it('should use development as default when NODE_ENV is not set', async () => {
+      delete process.env.NODE_ENV;
+      vi.resetModules();
+      const { logger } = await import('@/lib/logger');
+
+      logger.info('Test message');
+
+      const logOutput = consoleInfoSpy.mock.calls[0][0];
+      expect(logOutput).toContain('Test message');
+      // In development mode (default), it should use colored output format
+      expect(logOutput).toContain('INFO');
+    });
   });
 });

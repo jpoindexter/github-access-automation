@@ -125,6 +125,18 @@ describe('GitHub OAuth', () => {
       expect(url).toContain('state=test_state');
       expect(url).toContain('scope=user%3Aemail');
     });
+
+    it('should use empty string when GITHUB_OAUTH_CLIENT_ID is not set', async () => {
+      delete process.env.GITHUB_OAUTH_CLIENT_ID;
+      vi.resetModules();
+
+      const { getGitHubAuthUrl: getAuthUrl } = await import('../github-oauth');
+      const url = getAuthUrl('http://localhost/callback', 'test_state');
+
+      // client_id should be empty
+      expect(url).toContain('client_id=');
+      expect(url).not.toContain('client_id=test_client_id');
+    });
   });
 
   describe('exchangeCodeForToken', () => {

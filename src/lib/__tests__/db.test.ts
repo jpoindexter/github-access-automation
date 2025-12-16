@@ -218,6 +218,17 @@ describe('Database Operations', () => {
         ['ord_123']
       );
     });
+
+    it('should return null when order not found', async () => {
+      mockQuery.mockResolvedValueOnce({
+        rows: [],
+        rowCount: 0,
+      } as QueryResult);
+
+      const result = await db.getCustomerByOrderId('nonexistent_order');
+
+      expect(result).toBeNull();
+    });
   });
 
   describe('getCustomerByGitHubUsername', () => {
@@ -239,6 +250,17 @@ describe('Database Operations', () => {
         'SELECT * FROM customers WHERE github_username = $1;',
         ['johndoe']
       );
+    });
+
+    it('should return null when username not found', async () => {
+      mockQuery.mockResolvedValueOnce({
+        rows: [],
+        rowCount: 0,
+      } as QueryResult);
+
+      const result = await db.getCustomerByGitHubUsername('nonexistent_user');
+
+      expect(result).toBeNull();
     });
   });
 
@@ -379,7 +401,7 @@ describe('Database Operations', () => {
   });
 
   describe('revokeAccess', () => {
-    it('should revoke customer access', async () => {
+    it('should revoke customer access with reason', async () => {
       const mockCustomer = {
         id: '123',
         access_revoked: true,
@@ -396,6 +418,27 @@ describe('Database Operations', () => {
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('access_revoked = true'),
         ['123', 'Chargeback initiated']
+      );
+    });
+
+    it('should revoke customer access without reason', async () => {
+      const mockCustomer = {
+        id: '456',
+        access_revoked: true,
+        internal_notes: null,
+      };
+
+      mockQuery.mockResolvedValueOnce({
+        rows: [mockCustomer],
+        rowCount: 1,
+      } as QueryResult);
+
+      const result = await db.revokeAccess('456');
+
+      expect(result).toEqual(mockCustomer);
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.stringContaining('access_revoked = true'),
+        ['456', null]
       );
     });
   });
@@ -639,6 +682,128 @@ describe('Database Operations', () => {
 
       // Restore original env
       process.env.NODE_ENV = originalNodeEnv;
+      process.env.DATABASE_URL = originalDatabaseUrl;
+      process.env.DATABASE_SSL_SKIP_VERIFY = originalSslSkip;
+    });
+  });
+
+  describe('SSL configuration branches', () => {
+    it('should disable SSL for non-postgres URLs', async () => {
+      const originalDatabaseUrl = process.env.DATABASE_URL;
+
+      // Set a non-postgres URL
+      process.env.DATABASE_URL = 'mysql://user:pass@localhost:3306/db';
+
+      vi.resetModules();
+
+      let capturedSslConfig: unknown = undefined;
+      vi.doMock('pg', () => ({
+        Pool: class MockPool {
+          constructor(config: { ssl?: unknown }) {
+            capturedSslConfig = config.ssl;
+          }
+          query = vi.fn();
+          on = vi.fn();
+          end = vi.fn();
+        },
+      }));
+
+      vi.doMock('@/lib/logger', () => ({
+        dbLogger: {
+          error: vi.fn(),
+          warn: vi.fn(),
+          debug: vi.fn(),
+          info: vi.fn(),
+        },
+      }));
+
+      await import('@/lib/db');
+
+      // SSL should be false for non-postgres URLs
+      expect(capturedSslConfig).toBe(false);
+
+      process.env.DATABASE_URL = originalDatabaseUrl;
+    });
+
+    it('should set rejectUnauthorized to true for non-Neon postgres without skip flag', async () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+      const originalDatabaseUrl = process.env.DATABASE_URL;
+      const originalSslSkip = process.env.DATABASE_SSL_SKIP_VERIFY;
+
+      // Non-Neon postgres database without skip flag
+      process.env.NODE_ENV = 'development';
+      process.env.DATABASE_URL = 'postgres://user:pass@localhost:5432/db';
+      delete process.env.DATABASE_SSL_SKIP_VERIFY;
+
+      vi.resetModules();
+
+      let capturedSslConfig: unknown = undefined;
+      vi.doMock('pg', () => ({
+        Pool: class MockPool {
+          constructor(config: { ssl?: unknown }) {
+            capturedSslConfig = config.ssl;
+          }
+          query = vi.fn();
+          on = vi.fn();
+          end = vi.fn();
+        },
+      }));
+
+      vi.doMock('@/lib/logger', () => ({
+        dbLogger: {
+          error: vi.fn(),
+          warn: vi.fn(),
+          debug: vi.fn(),
+          info: vi.fn(),
+        },
+      }));
+
+      await import('@/lib/db');
+
+      // rejectUnauthorized should be true for non-Neon postgres without skip flag
+      expect(capturedSslConfig).toEqual({ rejectUnauthorized: true });
+
+      process.env.NODE_ENV = originalNodeEnv;
+      process.env.DATABASE_URL = originalDatabaseUrl;
+      process.env.DATABASE_SSL_SKIP_VERIFY = originalSslSkip;
+    });
+
+    it('should set rejectUnauthorized to false for Neon database', async () => {
+      const originalDatabaseUrl = process.env.DATABASE_URL;
+      const originalSslSkip = process.env.DATABASE_SSL_SKIP_VERIFY;
+
+      // Neon database URL
+      process.env.DATABASE_URL = 'postgres://user:pass@ep-xyz.neon.tech:5432/db';
+      delete process.env.DATABASE_SSL_SKIP_VERIFY;
+
+      vi.resetModules();
+
+      let capturedSslConfig: unknown = undefined;
+      vi.doMock('pg', () => ({
+        Pool: class MockPool {
+          constructor(config: { ssl?: unknown }) {
+            capturedSslConfig = config.ssl;
+          }
+          query = vi.fn();
+          on = vi.fn();
+          end = vi.fn();
+        },
+      }));
+
+      vi.doMock('@/lib/logger', () => ({
+        dbLogger: {
+          error: vi.fn(),
+          warn: vi.fn(),
+          debug: vi.fn(),
+          info: vi.fn(),
+        },
+      }));
+
+      await import('@/lib/db');
+
+      // rejectUnauthorized should be false for Neon databases
+      expect(capturedSslConfig).toEqual({ rejectUnauthorized: false });
+
       process.env.DATABASE_URL = originalDatabaseUrl;
       process.env.DATABASE_SSL_SKIP_VERIFY = originalSslSkip;
     });
