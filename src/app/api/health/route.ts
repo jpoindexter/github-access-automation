@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { getRetryQueueStats } from '@/lib/retry-queue';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,8 +15,26 @@ interface HealthCheckResponse {
   timestamp: string;
   uptime: number;
   services: {
-    database: boolean;
-    github: boolean;
+    database: {
+      healthy: boolean;
+      responseTime?: number;
+      error?: string;
+    };
+    github: {
+      healthy: boolean;
+      responseTime?: number;
+      rateLimit?: {
+        limit: number;
+        remaining: number;
+        reset: string;
+      };
+      error?: string;
+    };
+  };
+  retryQueue?: {
+    pending: number;
+    processing: number;
+    dlqCount: number;
   };
   environment: {
     nodeVersion: string;
@@ -29,8 +48,12 @@ export async function GET(_request: NextRequest) {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     services: {
-      database: false,
-      github: false,
+      database: {
+        healthy: false,
+      },
+      github: {
+        healthy: false,
+      },
     },
     environment: {
       nodeVersion: process.version,
@@ -38,31 +61,85 @@ export async function GET(_request: NextRequest) {
     },
   };
 
-  // Database connectivity check
+  // Database connectivity check with response time
   try {
+    const dbStart = Date.now();
     await db.query('SELECT 1');
-    checks.services.database = true;
+    const dbTime = Date.now() - dbStart;
+
+    checks.services.database = {
+      healthy: true,
+      responseTime: dbTime,
+    };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('Database health check failed', error);
+    checks.services.database = {
+      healthy: false,
+      error: errorMessage,
+    };
   }
 
-  // GitHub API check - use unauthenticated endpoint to avoid token exposure
-  // The rate_limit endpoint works without auth (returns lower limits)
+  // GitHub API check with rate limit info
   try {
-    const githubResponse = await fetch('https://api.github.com/zen', {
+    const githubStart = Date.now();
+    const githubResponse = await fetch('https://api.github.com/rate_limit', {
       headers: {
         'User-Agent': 'github-access-automation',
         Accept: 'application/vnd.github.v3+json',
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
       },
     });
-    checks.services.github = githubResponse.ok;
+    const githubTime = Date.now() - githubStart;
+
+    if (githubResponse.ok) {
+      const rateData = (await githubResponse.json()) as {
+        rate: { limit: number; remaining: number; reset: number };
+      };
+
+      checks.services.github = {
+        healthy: true,
+        responseTime: githubTime,
+        rateLimit: {
+          limit: rateData.rate.limit,
+          remaining: rateData.rate.remaining,
+          reset: new Date(rateData.rate.reset * 1000).toISOString(),
+        },
+      };
+    } else {
+      checks.services.github = {
+        healthy: false,
+        responseTime: githubTime,
+        error: `HTTP ${githubResponse.status}`,
+      };
+    }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error('GitHub health check failed', error);
+    checks.services.github = {
+      healthy: false,
+      error: errorMessage,
+    };
+  }
+
+  // Retry queue stats
+  try {
+    const stats = await getRetryQueueStats();
+    checks.retryQueue = {
+      pending: stats.pending,
+      processing: stats.processing,
+      dlqCount: stats.dlqCount,
+    };
+  } catch (error) {
+    logger.error('Retry queue stats check failed', error);
+    // Don't fail health check if retry queue stats unavailable
   }
 
   // Determine overall status
-  const allHealthy = Object.values(checks.services).every((v) => v === true);
-  const anyHealthy = Object.values(checks.services).some((v) => v === true);
+  const allHealthy =
+    checks.services.database.healthy && checks.services.github.healthy;
+  const anyHealthy =
+    checks.services.database.healthy || checks.services.github.healthy;
 
   if (allHealthy) {
     checks.status = 'ok';
