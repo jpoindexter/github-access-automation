@@ -28,5 +28,11 @@
       "source": "/health",
       "destination": "/api/health"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/process-retry-queue",
+      "schedule": "*/5 * * * *"
+    }
   ]
 }

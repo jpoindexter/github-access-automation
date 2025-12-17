@@ -5,6 +5,7 @@
 
 import { db } from '@/lib/db';
 import { CustomersTable } from '@/components/admin/customers-table';
+import Link from 'next/link';
 
 export default async function AdminDashboard() {
   const customers = await db.getAllCustomers();
@@ -21,7 +22,15 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Customers</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Customers</h1>
+        <Link
+          href="/admin/retry-queue"
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+        >
+          View Retry Queue
+        </Link>
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

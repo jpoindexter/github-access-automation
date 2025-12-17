@@ -174,5 +174,6 @@ export const dbLogger = logger.child({ component: 'database' });
 export const githubLogger = logger.child({ component: 'github' });
 export const emailLogger = logger.child({ component: 'email' });
 export const authLogger = logger.child({ component: 'auth' });
+export const retryLogger = logger.child({ component: 'retry-queue' });
 
 export default logger;
