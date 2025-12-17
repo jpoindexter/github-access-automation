@@ -5,9 +5,10 @@
 
 import { Resend } from 'resend';
 import { emailLogger } from '@/lib/logger';
+import { env } from '@/lib/env';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@example.com';
+const resend = new Resend(env.RESEND_API_KEY);
+const FROM_EMAIL = env.RESEND_FROM_EMAIL || 'noreply@example.com';
 
 export interface SendEmailOptions {
   to: string;
@@ -159,7 +160,7 @@ export async function sendErrorNotification(
   error: string,
   context?: Record<string, string | number | boolean | null | undefined>
 ): Promise<{ success: boolean; error?: string }> {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+  const adminEmail = env.ADMIN_EMAIL || 'admin@example.com';
 
   const htmlContent = `
     <!DOCTYPE html>

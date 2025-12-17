@@ -111,13 +111,13 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
+    // Log error securely with full details (not exposed to user)
     authLogger.error('GitHub OAuth callback failed', error);
-    console.error('Full OAuth Error:', error); // Add console log for immediate visibility
 
+    // Return generic error message (no stack trace, no internal details)
     return NextResponse.json(
       {
-        error: 'Failed to complete GitHub authentication',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: 'Failed to complete GitHub authentication. Please try again.',
       },
       { status: 500 }
     );

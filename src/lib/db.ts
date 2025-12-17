@@ -240,6 +240,42 @@ export const db = {
   },
 
   /**
+   * Admin: Get all customers with key fields (no pagination)
+   */
+  async getAllCustomers(): Promise<Customer[]> {
+    const query = `
+      SELECT
+        id,
+        email,
+        name,
+        github_username,
+        github_user_id,
+        status,
+        invitation_sent_at,
+        invitation_error,
+        welcome_email_sent,
+        created_at,
+        updated_at,
+        amount_paid,
+        currency
+      FROM customers
+      ORDER BY created_at DESC;
+    `;
+
+    const result = await pool.query(query);
+    return result.rows as Customer[];
+  },
+
+  /**
+   * Admin: Get customer by ID
+   */
+  async getCustomerById(id: string): Promise<Customer | null> {
+    const query = 'SELECT * FROM customers WHERE id = $1;';
+    const result = await pool.query(query, [id]);
+    return (result.rows[0] as Customer) || null;
+  },
+
+  /**
    * OAuth Session operations
    */
 

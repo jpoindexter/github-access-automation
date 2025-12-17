@@ -214,12 +214,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    // Log error securely with full details (including stack trace)
     webhookLogger.error('Polar webhook processing error', error);
 
+    // Send notification with error message only (no stack trace exposure)
     await sendErrorNotification(
       'Webhook Processing Error',
       errorMessage,
-      { error: error instanceof Error ? error.stack : 'No stack trace' }
+      { timestamp: new Date().toISOString() }
     );
 
     return NextResponse.json(

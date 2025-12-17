@@ -338,7 +338,7 @@ describe('OAuth Callback Handler', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe('Failed to complete GitHub authentication');
+      expect(data.error).toBe('Failed to complete GitHub authentication. Please try again.');
       expect(mockAuthLogger.error).toHaveBeenCalledWith(
         'GitHub OAuth callback failed',
         expect.any(Error)
@@ -371,7 +371,7 @@ describe('OAuth Callback Handler', () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data.error).toBe('Failed to complete GitHub authentication');
+      expect(data.error).toBe('Failed to complete GitHub authentication. Please try again.');
       expect(mockAuthLogger.error).toHaveBeenCalled();
     });
 
