@@ -215,18 +215,35 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-    // Log error securely with full details (including stack trace)
-    webhookLogger.error('Polar webhook processing error', error);
-
-    // Send notification with error message only (no stack trace exposure)
-    await sendErrorNotification(
-      'Webhook Processing Error',
-      errorMessage,
-      { timestamp: new Date().toISOString() }
+    // Categorize error with actionable guidance
+    const { categorizeError, formatErrorForLogging, shouldAlertAdmin } = await import(
+      '@/lib/error-handler'
     );
+    const errorToHandle = error instanceof Error ? error : new Error(errorMessage);
+    const categorized = categorizeError(errorToHandle);
+
+    // Log error with category and solution
+    webhookLogger.error('Polar webhook processing error', error, formatErrorForLogging(errorToHandle));
+
+    // Send notification only for critical/high severity errors
+    if (shouldAlertAdmin(errorToHandle)) {
+      await sendErrorNotification(
+        `[${categorized.severity}] Webhook Processing Error`,
+        `${categorized.userMessage}\n\nHow to fix:\n${categorized.solution}`,
+        {
+          category: categorized.category,
+          code: categorized.code,
+          timestamp: new Date().toISOString(),
+        }
+      );
+    }
 
     return NextResponse.json(
-      { error: 'Failed to process webhook' },
+      {
+        error: 'Failed to process webhook',
+        category: categorized.category,
+        userMessage: categorized.userMessage,
+      },
       { status: 500 }
     );
   }

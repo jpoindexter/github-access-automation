@@ -8,6 +8,7 @@ import { db } from './db';
 import { inviteToRepository } from './github-api';
 import { sendWelcomeEmail } from './email';
 import { retryLogger } from './logger';
+import { formatErrorForLogging } from './error-handler';
 
 /**
  * Exponential backoff schedule (in seconds)
@@ -285,11 +286,11 @@ export async function processRetryQueue(): Promise<{
       const classification = classifyError(error as Error);
       const nextAttempt = item.attempt_number + 1;
 
-      retryLogger.error('Retry failed', {
+      retryLogger.error('Retry failed', error, {
         customerId: item.customer_id,
         attempt: nextAttempt,
-        error: classification.message,
         errorType: classification.type,
+        ...formatErrorForLogging(error as Error),
       });
 
       // Check if we should retry again or move to DLQ
