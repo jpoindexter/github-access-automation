@@ -39,6 +39,7 @@
   "exclude": [
     "node_modules",
     "scripts",
+    "agentsmith",
     "**/__tests__/**",
     "**/*.test.ts",
     "**/*.spec.ts",

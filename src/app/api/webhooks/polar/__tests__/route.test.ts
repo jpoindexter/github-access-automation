@@ -197,7 +197,10 @@ describe('Polar Webhook Handler', () => {
 
       mockRequest = new NextRequest('http://localhost/api/webhooks/polar', {
         method: 'POST',
-        body: JSON.stringify({ type: 'order.paid', data: { id: 'ord_123', metadata: {}, custom_field_data: {} } }),
+        body: JSON.stringify({
+          type: 'order.paid',
+          data: { id: 'ord_123', metadata: {}, custom_field_data: {} },
+        }),
         headers: { 'x-polar-signature': 'valid_sig' },
       });
 
@@ -227,14 +230,14 @@ describe('Polar Webhook Handler', () => {
       mockExtractCustomerDataFromWebhook.mockReturnValue({
         email: 'test@example.com',
       } as never);
-      
+
       // Mock db.createCustomer to return an existing customer (UPSERT simulation)
       mockDb.createCustomer.mockResolvedValue({
         id: 'cust_123',
         email: 'test@example.com',
         github_username: 'testuser',
       } as never);
-      
+
       mockInviteToRepository.mockResolvedValue({
         success: true,
         message: 'Invited',
@@ -263,7 +266,7 @@ describe('Polar Webhook Handler', () => {
       expect(data.success).toBe(true);
       // Should NOT message 'Customer already processed' anymore
       expect(data.invited).toBe(true);
-      
+
       expect(mockDb.createCustomer).toHaveBeenCalled();
       expect(mockInviteToRepository).toHaveBeenCalledWith('testuser', 'pull');
     });
@@ -422,9 +425,13 @@ describe('Polar Webhook Handler', () => {
       expect(data.error).toBe('Failed to process webhook');
       expect(mockWebhookLogger.error).toHaveBeenCalledWith(
         'Polar webhook processing error',
-        expect.any(Error)
+        expect.any(Error),
+        expect.objectContaining({
+          category: 'UNKNOWN',
+          severity: 'MEDIUM',
+        })
       );
-      expect(mockSendErrorNotification).toHaveBeenCalled();
+      expect(mockSendErrorNotification).not.toHaveBeenCalled(); // MEDIUM severity doesn't alert
     });
   });
 

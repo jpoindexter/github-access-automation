@@ -19,6 +19,10 @@ vi.mock('@/lib/logger', () => ({
   },
 }));
 
+vi.mock('@/lib/retry-queue', () => ({
+  getRetryQueueStats: vi.fn(),
+}));
+
 // Mock global fetch
 global.fetch = vi.fn() as never;
 
@@ -30,6 +34,7 @@ describe('Health Check Handler', () => {
   describe('GET handler', () => {
     it('should return healthy status when all services are up', async () => {
       const { db } = await import('@/lib/db');
+      const { getRetryQueueStats } = await import('@/lib/retry-queue');
       const { GET } = await import('../route');
 
       // Mock successful database query
@@ -38,11 +43,27 @@ describe('Health Check Handler', () => {
         rowCount: 1,
       } as never);
 
+      // Mock retry queue stats
+      vi.mocked(getRetryQueueStats).mockResolvedValueOnce({
+        pending: 0,
+        processing: 0,
+        completed: 100,
+        failed: 0,
+        dlqCount: 0,
+      });
+
       // Mock successful GitHub API check
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
-      } as Response);
+        json: vi.fn().mockResolvedValue({
+          rate: {
+            limit: 5000,
+            remaining: 4999,
+            reset: Math.floor(Date.now() / 1000) + 3600,
+          },
+        }),
+      } as never);
 
       const mockRequest = new NextRequest('http://localhost/api/health', {
         method: 'GET',
@@ -53,8 +74,12 @@ describe('Health Check Handler', () => {
 
       expect(response.status).toBe(200);
       expect(data.status).toBe('ok');
-      expect(data.services.database).toBe(true);
-      expect(data.services.github).toBe(true);
+      expect(data.services.database.healthy).toBe(true);
+      expect(data.services.database.responseTime).toBeDefined();
+      expect(data.services.github.healthy).toBe(true);
+      expect(data.services.github.responseTime).toBeDefined();
+      expect(data.services.github.rateLimit).toBeDefined();
+      expect(data.retryQueue).toBeDefined();
       expect(data.timestamp).toBeDefined();
       expect(data.uptime).toBeGreaterThanOrEqual(0);
       expect(data.environment.nodeVersion).toBe(process.version);
@@ -67,9 +92,7 @@ describe('Health Check Handler', () => {
       const { GET } = await import('../route');
 
       // Mock failed database query
-      vi.mocked(db.query).mockRejectedValueOnce(
-        new Error('Connection refused')
-      );
+      vi.mocked(db.query).mockRejectedValueOnce(new Error('Connection refused'));
 
       // Mock successful GitHub API check
       vi.mocked(fetch).mockResolvedValueOnce({
@@ -88,10 +111,7 @@ describe('Health Check Handler', () => {
       expect(data.status).toBe('degraded');
       expect(data.services.database).toBe(false);
       expect(data.services.github).toBe(true);
-      expect(logger.error).toHaveBeenCalledWith(
-        'Database health check failed',
-        expect.any(Error)
-      );
+      expect(logger.error).toHaveBeenCalledWith('Database health check failed', expect.any(Error));
     });
 
     it('should return degraded status when GitHub is down', async () => {
@@ -192,9 +212,7 @@ describe('Health Check Handler', () => {
       const response = await GET(mockRequest);
       const data = await response.json();
 
-      expect(data.timestamp).toMatch(
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
-      );
+      expect(data.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
     });
 
     it('should execute simple database query', async () => {
@@ -261,9 +279,7 @@ describe('Health Check Handler', () => {
         rowCount: 1,
       } as never);
 
-      vi.mocked(fetch).mockRejectedValueOnce(
-        new Error('fetch failed')
-      );
+      vi.mocked(fetch).mockRejectedValueOnce(new Error('fetch failed'));
 
       const mockRequest = new NextRequest('http://localhost/api/health', {
         method: 'GET',
@@ -273,10 +289,7 @@ describe('Health Check Handler', () => {
       const data = await response.json();
 
       expect(data.services.github).toBe(false);
-      expect(logger.error).toHaveBeenCalledWith(
-        'GitHub health check failed',
-        expect.any(Error)
-      );
+      expect(logger.error).toHaveBeenCalledWith('GitHub health check failed', expect.any(Error));
     });
 
     it('should include environment information', async () => {
@@ -352,9 +365,7 @@ describe('Health Check Handler', () => {
       } as never);
 
       // GitHub fails with timeout
-      vi.mocked(fetch).mockRejectedValueOnce(
-        new Error('Request timeout')
-      );
+      vi.mocked(fetch).mockRejectedValueOnce(new Error('Request timeout'));
 
       const mockRequest = new NextRequest('http://localhost/api/health', {
         method: 'GET',

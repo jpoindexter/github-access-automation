@@ -136,6 +136,9 @@ debug.log
 # ================== Claude/AI ==================
 .claude/
 
+# ================== Agentsmith (external tool) ==================
+agentsmith/
+
 # ================== Prisma ==================
 # Uncomment if using Prisma
 # prisma/dev.db

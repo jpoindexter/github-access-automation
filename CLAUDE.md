@@ -32,6 +32,12 @@ npm run test:run         # Single run
 npm run test:coverage    # Coverage report
 npm run test:watch       # Watch mode
 
+# Run a single test file (for TDD workflow)
+npm test src/lib/__tests__/github-api.test.ts
+
+# Run a single test by name pattern
+npm test -- -t "should invite user successfully"
+
 # Database
 npm run db:migrate       # Run migrations
 npm run db:seed          # Load test data
@@ -44,15 +50,25 @@ npm run dev              # Start server
 ngrok http 3000          # Create public tunnel for webhook testing
 ```
 
-## Status & Recent Fixes
+## Status & Production Features
 
 **Status**: Production Ready ✅
-- 243/243 tests passing
+
+- 243/243 tests passing (100% coverage on core libraries)
 - All pre-commit/pre-push hooks passing
 - End-to-end flow verified (Polar → GitHub → Email)
 - Production build successful
 
+**Production Features**:
+
+1. **Enhanced Error Handler** (Phase 3) - Categorizes errors with actionable step-by-step solutions
+2. **Auto-Retry Queue** (Phase 2) - Exponential backoff retry for transient failures (network, rate limits)
+3. **Dead Letter Queue** - Permanent failures tracked separately for manual review
+4. **Health Check Endpoint** - Monitors database, retry queue, and DLQ status
+5. **Admin Retry Panel** - Manual retry trigger for failed invitations
+
 **Recent Fixes** (integrated from project debugging):
+
 1. **Webhook signature verification** - Strictly enforces secret presence and uses timing-safe comparison
 2. **Custom field data extraction** - Robustly handles GitHub username from both `metadata` (API-driven) and `custom_field_data` (user-input during checkout)
 3. **Customer UPSERT logic** - Gracefully handles repeat purchases instead of failing on email uniqueness
@@ -84,6 +100,7 @@ function verifyPolarWebhookSignature(payload: string, signature: string): boolea
 ```
 
 **Important Notes**:
+
 - Ensures webhook came from Polar, not attackers
 - Never use simple string comparison (`===`)
 - Must use raw request body, not parsed JSON
@@ -133,6 +150,7 @@ const username = data.custom_field_data?.gh_username || data.custom_field_data?.
 ```
 
 **Must support**:
+
 - `github_username`, `gh_username`, `github_user_id`, `gh_user_id` (all variants)
 - Handles both API-driven metadata and user-input custom fields
 
@@ -396,6 +414,7 @@ docker run -p 3000:3000 --env-file .env.local github-access-automation
 ## Production Deployment Checklist
 
 **Before deploying to production**:
+
 - [ ] Set `NODE_ENV="production"` in hosting provider
 - [ ] Configure all environment variables in hosting provider dashboard (see below)
 - [ ] Verify GitHub OAuth app callback URL matches production domain (HTTPS required)
