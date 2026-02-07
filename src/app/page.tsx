@@ -6,8 +6,12 @@ export default function Home() {
 
       <h2>Status</h2>
       <ul>
-        <li>Webhook Endpoint: <code>/api/webhooks/polar</code></li>
-        <li>OAuth Endpoint: <code>/api/auth/github</code></li>
+        <li>
+          Webhook Endpoint: <code>/api/webhooks/polar</code>
+        </li>
+        <li>
+          OAuth Endpoint: <code>/api/auth/github</code>
+        </li>
       </ul>
 
       <h2>How It Works</h2>
@@ -29,9 +33,7 @@ export default function Home() {
       </ul>
 
       <hr />
-      <p style={{ color: '#666', fontSize: '0.875rem' }}>
-        GitHub Access Automation Tool
-      </p>
+      <p style={{ color: '#666', fontSize: '0.875rem' }}>GitHub Access Automation Tool</p>
     </main>
   );
 }

@@ -5,9 +5,11 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 ## Test Files Created
 
 ### 1. `/src/lib/__tests__/db.test.ts` (Database Operations)
+
 **Coverage**: All database CRUD operations
 
 **Tests**:
+
 - ✅ Customer creation (with all fields, optional fields, error handling)
 - ✅ Customer retrieval (by email, order ID, GitHub username)
 - ✅ Customer status updates (with/without invitation details, error messages)
@@ -20,6 +22,7 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 - ✅ Connection closing
 
 **Key Features**:
+
 - Mocked `pg` Pool
 - Tests for null/undefined handling
 - Error propagation tests
@@ -28,9 +31,11 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 ---
 
 ### 2. `/src/lib/__tests__/email.test.ts` (Email Service)
+
 **Coverage**: Resend email sending functionality
 
 **Tests**:
+
 - ✅ Basic email sending (with/without text content)
 - ✅ Welcome email generation (HTML + text, all sections)
 - ✅ Error notifications (with/without context, complex objects)
@@ -40,6 +45,7 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 - ✅ Environment configuration (FROM_EMAIL, ADMIN_EMAIL)
 
 **Key Features**:
+
 - Mocked Resend client
 - Email content validation
 - Error response structure tests
@@ -48,9 +54,11 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 ---
 
 ### 3. `/src/lib/__tests__/github-api.test.ts` (GitHub API)
+
 **Coverage**: Repository operations via Octokit
 
 **Tests**:
+
 - ✅ User invitation (new users, existing collaborators, custom permissions)
 - ✅ Collaborator status checking (existing, non-existing, errors)
 - ✅ Repository information retrieval (public/private repos)
@@ -60,6 +68,7 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 - ✅ API error handling (404s, permission errors, unknown errors)
 
 **Key Features**:
+
 - Mocked Octokit client
 - Permission level testing
 - Edge case handling (missing IDs, null roles)
@@ -68,14 +77,16 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 ---
 
 ### 4. `/src/lib/__tests__/logger.test.ts` (Structured Logging)
+
 **Coverage**: Logging with PII redaction
 
 **Tests**:
+
 - ✅ All log levels (debug, info, warn, error)
 - ✅ Debug suppression in production
 - ✅ Error object handling (with/without stack traces)
 - ✅ PII redaction (passwords, tokens, emails, API keys, secrets)
-- ✅ Token pattern detection (ghp_, sk_, pk_, re_, polar_)
+- ✅ Token pattern detection (ghp*, sk*, pk*, re*, polar\_)
 - ✅ Nested object redaction
 - ✅ Array redaction
 - ✅ Deep nesting protection (max depth)
@@ -84,6 +95,7 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 - ✅ Log formatting (JSON in production, readable in development)
 
 **Key Features**:
+
 - Console spy mocking
 - Environment-specific behavior testing
 - PII security validation
@@ -92,12 +104,14 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 ---
 
 ### 5. `/src/lib/__tests__/env.test.ts` (Environment Validation)
+
 **Coverage**: Zod schema validation
 
 **Tests**:
+
 - ✅ Valid environment configurations
 - ✅ Database URL formats (postgresql://, postgres://)
-- ✅ GitHub token formats (ghp_, github_pat_)
+- ✅ GitHub token formats (ghp*, github_pat*)
 - ✅ Optional fields (RESEND_API_KEY, ADMIN_EMAIL, POLAR_ACCESS_TOKEN)
 - ✅ NODE_ENV defaulting
 - ✅ Validation failures (missing required fields, invalid formats)
@@ -106,6 +120,7 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 - ✅ Utility functions (isProduction, isDevelopment, isTest)
 
 **Key Features**:
+
 - Environment isolation per test
 - Console error spying
 - Module reloading for clean state
@@ -114,9 +129,11 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 ---
 
 ### 6. `/src/app/api/webhooks/polar/__tests__/route.test.ts` (Webhook Handler)
+
 **Coverage**: Polar payment webhook processing
 
 **Tests**:
+
 - ✅ Signature verification (valid/invalid/missing)
 - ✅ Timestamp validation (replay attack protection)
 - ✅ Event type filtering (paid vs non-paid orders)
@@ -129,6 +146,7 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 - ✅ Health check GET endpoint
 
 **Key Features**:
+
 - Full integration test coverage
 - NextRequest mocking
 - Multi-step flow validation
@@ -137,9 +155,11 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 ---
 
 ### 7. `/src/app/api/auth/callback/__tests__/route.test.ts` (OAuth Callback)
+
 **Coverage**: GitHub OAuth authentication flow
 
 **Tests**:
+
 - ✅ GitHub OAuth errors (access_denied, etc.)
 - ✅ Missing authorization code
 - ✅ CSRF protection (invalid state, missing cookie)
@@ -154,6 +174,7 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 - ✅ Users without email/name
 
 **Key Features**:
+
 - CSRF attack simulation
 - Security header validation
 - Redirect URL verification
@@ -162,9 +183,11 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 ---
 
 ### 8. `/src/app/api/health/__tests__/route.test.ts` (Health Check)
+
 **Coverage**: Service health monitoring
 
 **Tests**:
+
 - ✅ All services healthy (200 OK)
 - ✅ Database down (degraded status)
 - ✅ GitHub down (degraded status)
@@ -180,6 +203,7 @@ Comprehensive test suite for GitHub Access Automation project using Vitest.
 - ✅ Consistent response structure
 
 **Key Features**:
+
 - Global fetch mocking
 - Database query verification
 - Status code validation
@@ -206,6 +230,7 @@ npm test -- --watch
 ## Coverage Goals
 
 Each test file achieves:
+
 - **Line Coverage**: 80%+ of all executable lines
 - **Branch Coverage**: 80%+ of all conditional branches
 - **Function Coverage**: 90%+ of all functions
@@ -214,6 +239,7 @@ Each test file achieves:
 ## Test Patterns Used
 
 ### Mocking Strategy
+
 ```typescript
 vi.mock('module-name', () => ({
   exportedFunction: vi.fn(),
@@ -221,17 +247,20 @@ vi.mock('module-name', () => ({
 ```
 
 ### Async Testing
+
 ```typescript
 const result = await functionUnderTest();
 expect(result).toEqual(expectedValue);
 ```
 
 ### Error Handling
+
 ```typescript
 await expect(functionUnderTest()).rejects.toThrow('Expected error');
 ```
 
 ### Environment Isolation
+
 ```typescript
 beforeEach(() => {
   originalEnv = { ...process.env };

@@ -20,6 +20,7 @@ Comprehensive guide for deploying the GitHub Access Automation tool to productio
 Before deploying to production, ensure you have:
 
 ### GitHub Setup
+
 - [ ] GitHub OAuth App created for production domain
   - Go to GitHub Settings → Developer settings → OAuth Apps → New OAuth App
   - **Homepage URL**: `https://your-domain.com`
@@ -33,6 +34,7 @@ Before deploying to production, ensure you have:
 - [ ] Repository branch protection enabled (optional but recommended)
 
 ### Polar.sh Setup
+
 - [ ] Polar.sh account created
 - [ ] Product created with pricing
 - [ ] Checkout page configured
@@ -40,18 +42,21 @@ Before deploying to production, ensure you have:
 - [ ] Test payment completed in sandbox
 
 ### Database Setup
+
 - [ ] PostgreSQL database provisioned (Neon, Supabase, or self-hosted)
 - [ ] Database connection string obtained
 - [ ] Database accessible from deployment platform
 - [ ] Tables created (run migration script)
 
 ### Email Setup
+
 - [ ] Resend account created
 - [ ] Domain verified in Resend (for production emails)
 - [ ] API key generated
 - [ ] Test email sent successfully
 
 ### Code Preparation
+
 - [ ] All tests passing (`npm test`)
 - [ ] TypeScript compilation successful (`npm run type-check`)
 - [ ] Linting passed (`npm run lint`)
@@ -133,11 +138,13 @@ vercel env add RESEND_API_KEY production
 ### Step 7: Update Webhook URLs
 
 **In Polar.sh Dashboard:**
+
 1. Go to Settings → Webhooks
 2. Update webhook URL to: `https://your-domain.com/api/webhooks/polar`
 3. Save changes
 
 **In GitHub OAuth App:**
+
 1. Go to GitHub Settings → Developer settings → OAuth Apps
 2. Update Homepage URL to: `https://your-domain.com`
 3. Update Authorization callback URL to: `https://your-domain.com/api/auth/callback`
@@ -211,12 +218,12 @@ services:
   app:
     image: github-access-automation:latest
     ports:
-      - "3000:3000"
+      - '3000:3000'
     env_file:
       - .env.production
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -405,32 +412,32 @@ Complete list of required and optional environment variables.
 
 ### Required Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
-| `GITHUB_TOKEN` | Personal access token with `repo` scope | `ghp_xxxxxxxxxxxxxxxxxxxx` |
-| `GITHUB_ORG_OR_USER` | GitHub organization or username | `your-org` |
-| `GITHUB_REPO` | Repository name to grant access to | `your-boilerplate-repo` |
-| `POLAR_WEBHOOK_SECRET` | Webhook signing secret from Polar | `polar_whs_xxxxxxxxxxxx` |
-| `GITHUB_OAUTH_CLIENT_ID` | OAuth app client ID | `Ov23liXXXXXXXXXXXXXX` |
-| `GITHUB_OAUTH_CLIENT_SECRET` | OAuth app client secret | `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` |
-| `NEXT_PUBLIC_APP_URL` | Production domain URL | `https://your-domain.com` |
+| Variable                     | Description                             | Example                                    |
+| ---------------------------- | --------------------------------------- | ------------------------------------------ |
+| `DATABASE_URL`               | PostgreSQL connection string            | `postgresql://user:pass@host:5432/db`      |
+| `GITHUB_TOKEN`               | Personal access token with `repo` scope | `ghp_xxxxxxxxxxxxxxxxxxxx`                 |
+| `GITHUB_ORG_OR_USER`         | GitHub organization or username         | `your-org`                                 |
+| `GITHUB_REPO`                | Repository name to grant access to      | `your-boilerplate-repo`                    |
+| `POLAR_WEBHOOK_SECRET`       | Webhook signing secret from Polar       | `polar_whs_xxxxxxxxxxxx`                   |
+| `GITHUB_OAUTH_CLIENT_ID`     | OAuth app client ID                     | `Ov23liXXXXXXXXXXXXXX`                     |
+| `GITHUB_OAUTH_CLIENT_SECRET` | OAuth app client secret                 | `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` |
+| `NEXT_PUBLIC_APP_URL`        | Production domain URL                   | `https://your-domain.com`                  |
 
 ### Email Variables (Recommended)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `RESEND_API_KEY` | Resend API key for transactional emails | `re_xxxxxxxxxxxxxxxxxxxx` |
-| `RESEND_FROM_EMAIL` | Sender email address | `noreply@yourdomain.com` |
-| `ADMIN_EMAIL` | Admin email for error notifications | `admin@yourdomain.com` |
+| Variable            | Description                             | Example                   |
+| ------------------- | --------------------------------------- | ------------------------- |
+| `RESEND_API_KEY`    | Resend API key for transactional emails | `re_xxxxxxxxxxxxxxxxxxxx` |
+| `RESEND_FROM_EMAIL` | Sender email address                    | `noreply@yourdomain.com`  |
+| `ADMIN_EMAIL`       | Admin email for error notifications     | `admin@yourdomain.com`    |
 
 ### Optional Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NODE_ENV` | Environment (production/development) | `development` |
-| `PORT` | Server port | `3000` |
-| `LOG_LEVEL` | Logging verbosity (info/debug/error) | `info` |
+| Variable    | Description                          | Default       |
+| ----------- | ------------------------------------ | ------------- |
+| `NODE_ENV`  | Environment (production/development) | `development` |
+| `PORT`      | Server port                          | `3000`        |
+| `LOG_LEVEL` | Logging verbosity (info/debug/error) | `info`        |
 
 ### Environment Variable Validation
 
@@ -456,6 +463,7 @@ curl https://your-domain.com/api/health
 ```
 
 **Expected response:**
+
 ```json
 {
   "status": "ok",
@@ -472,6 +480,7 @@ curl https://your-domain.com/api/webhooks/polar
 ```
 
 **Expected response:**
+
 ```json
 {
   "status": "ok",
@@ -537,6 +546,7 @@ SELECT COUNT(*) FROM customers;
 ### 6. Email Delivery
 
 Check Resend dashboard:
+
 - Go to https://resend.com/emails
 - Verify test emails were sent
 - Check delivery status
@@ -545,21 +555,25 @@ Check Resend dashboard:
 ### 7. Application Logs
 
 **Vercel:**
+
 ```bash
 vercel logs --prod
 ```
 
 **Railway:**
+
 ```bash
 railway logs
 ```
 
 **Docker:**
+
 ```bash
 docker logs github-access-automation -f
 ```
 
 Look for:
+
 - Successful webhook processing
 - GitHub invitation confirmations
 - Email send confirmations
@@ -586,6 +600,7 @@ Set up monitoring to track application health and performance.
 ### 2. Application Performance Monitoring
 
 **Vercel Analytics (Built-in):**
+
 - Go to Vercel dashboard → Analytics
 - Monitor Web Vitals (Core Web Vitals)
 - Track real user metrics
@@ -598,7 +613,7 @@ npm install @sentry/nextjs
 
 ```javascript
 // sentry.server.config.js
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -610,6 +625,7 @@ Sentry.init({
 ### 3. Database Monitoring
 
 **Neon Dashboard:**
+
 - Monitor connection pool usage
 - Track query performance
 - Review slow queries
@@ -638,6 +654,7 @@ WHERE schemaname = 'public';
 ### 4. Webhook Monitoring
 
 Create dashboard to track:
+
 - Webhook success rate
 - Processing time
 - Failed invitations
@@ -672,11 +689,13 @@ WHERE welcome_email_sent = false
 ### 5. Alerts Setup
 
 **Email Alerts (via Resend):**
+
 - Error notifications sent to `ADMIN_EMAIL`
 - Triggered on webhook failures
 - Includes error details for debugging
 
 **Vercel Deployment Alerts:**
+
 - Go to project settings → Notifications
 - Enable email notifications for:
   - Deployment failures
@@ -692,12 +711,14 @@ If issues occur in production, follow these rollback steps.
 ### Vercel Rollback
 
 **Via Dashboard:**
+
 1. Go to Deployments
 2. Find last working deployment
 3. Click "..." → Promote to Production
 4. Confirm promotion
 
 **Via CLI:**
+
 ```bash
 # List deployments
 vercel ls
@@ -709,11 +730,13 @@ vercel rollback [deployment-url]
 ### Railway Rollback
 
 **Via Dashboard:**
+
 1. Go to project → Deployments
 2. Find last working deployment
 3. Click "Redeploy"
 
 **Via CLI:**
+
 ```bash
 railway rollback
 ```
@@ -755,18 +778,21 @@ psql $DATABASE_URL < backup_YYYY-MM-DD.sql
 ### Emergency Actions
 
 **If webhooks are failing:**
+
 1. Check Polar dashboard → Webhooks → Recent deliveries
 2. Retry failed webhooks manually
 3. Check application logs for errors
 4. Verify `POLAR_WEBHOOK_SECRET` is correct
 
 **If GitHub invitations are failing:**
+
 1. Verify `GITHUB_TOKEN` hasn't expired
 2. Check token has `repo` scope
 3. Verify repository name is correct
 4. Check if rate limit is exceeded (5000 requests/hour)
 
 **If database is unavailable:**
+
 1. Check database provider status page
 2. Verify connection string is correct
 3. Check database hasn't hit connection limit

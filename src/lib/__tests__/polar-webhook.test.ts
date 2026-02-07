@@ -18,9 +18,7 @@ describe('Polar Webhook', () => {
       const payload = '{"type":"order.paid"}';
       // Calculate actual HMAC-SHA256
       const secret = 'test_secret';
-      const expectedSignature = createHmac('sha256', secret)
-        .update(payload)
-        .digest('hex');
+      const expectedSignature = createHmac('sha256', secret).update(payload).digest('hex');
 
       const result = verifyPolarWebhookSignature(payload, expectedSignature);
       expect(result).toBe(true);
@@ -47,9 +45,7 @@ describe('Polar Webhook', () => {
       vi.unstubAllEnvs(); // Clear all envs including the secret
       delete process.env.POLAR_WEBHOOK_SECRET;
 
-      const { verifyPolarWebhookSignature: verifySig } = await import(
-        '../polar-webhook'
-      );
+      const { verifyPolarWebhookSignature: verifySig } = await import('../polar-webhook');
 
       const payload = '{"type":"order.paid"}';
       const signature = 'some_signature';
@@ -64,9 +60,7 @@ describe('Polar Webhook', () => {
     it('should handle matching signatures of same length', () => {
       const payload = '{"test":"data"}';
       const secret = 'test_secret';
-      const signature = createHmac('sha256', secret)
-        .update(payload)
-        .digest('hex');
+      const signature = createHmac('sha256', secret).update(payload).digest('hex');
 
       // Same signature should match
       const result = verifyPolarWebhookSignature(payload, signature);
@@ -77,8 +71,7 @@ describe('Polar Webhook', () => {
       const payload = '{"type":"order.paid"}';
       // Create a valid length signature but with wrong content
       // SHA256 hex is 64 characters
-      const wrongSignature =
-        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      const wrongSignature = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
       const result = verifyPolarWebhookSignature(payload, wrongSignature);
       expect(result).toBe(false);
@@ -188,9 +181,7 @@ describe('Polar Webhook', () => {
     });
 
     it('should throw on invalid JSON', () => {
-      expect(() => parsePolarWebhook('invalid json')).toThrow(
-        'Invalid JSON in webhook payload'
-      );
+      expect(() => parsePolarWebhook('invalid json')).toThrow('Invalid JSON in webhook payload');
     });
   });
 

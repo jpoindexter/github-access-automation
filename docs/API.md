@@ -54,10 +54,10 @@ Handles GitHub OAuth callback, validates CSRF state, creates session, redirects 
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `code` | string | Yes | GitHub authorization code |
-| `state` | string | Yes | CSRF state token |
+| Parameter | Type   | Required | Description               |
+| --------- | ------ | -------- | ------------------------- |
+| `code`    | string | Yes      | GitHub authorization code |
+| `state`   | string | Yes      | CSRF state token          |
 
 **Success Response:** `302 Redirect`
 
@@ -105,10 +105,10 @@ Processes Polar.sh payment webhooks. Creates customer record, invites to GitHub 
 
 **Headers:**
 
-| Header | Type | Required | Description |
-|--------|------|----------|-------------|
-| `Content-Type` | string | Yes | Must be `application/json` |
-| `x-polar-signature` | string | Yes | HMAC-SHA256 signature |
+| Header              | Type   | Required | Description                |
+| ------------------- | ------ | -------- | -------------------------- |
+| `Content-Type`      | string | Yes      | Must be `application/json` |
+| `x-polar-signature` | string | Yes      | HMAC-SHA256 signature      |
 
 **Request Body:**
 
@@ -296,9 +296,7 @@ function verifyWebhookSignature(body: string, signature: string): boolean {
   const expectedSignature = signature.replace('sha256=', '');
 
   // Compute HMAC-SHA256
-  const computedSignature = createHmac('sha256', secret)
-    .update(body, 'utf8')
-    .digest('hex');
+  const computedSignature = createHmac('sha256', secret).update(body, 'utf8').digest('hex');
 
   // Constant-time comparison
   return timingSafeEqual(
@@ -312,11 +310,11 @@ function verifyWebhookSignature(body: string, signature: string): boolean {
 
 ## Rate Limits
 
-| Endpoint | Limit | Window |
-|----------|-------|--------|
+| Endpoint          | Limit       | Window   |
+| ----------------- | ----------- | -------- |
 | `/api/webhooks/*` | 30 requests | 1 minute |
-| `/api/auth/*` | 10 requests | 1 minute |
-| `/api/health` | 60 requests | 1 minute |
+| `/api/auth/*`     | 10 requests | 1 minute |
+| `/api/health`     | 60 requests | 1 minute |
 
 **Rate Limit Headers:**
 
@@ -338,14 +336,14 @@ X-RateLimit-Reset: 1705315200
 
 ## Error Codes
 
-| HTTP Code | Error | Description |
-|-----------|-------|-------------|
-| `400` | Bad Request | Missing or invalid parameters |
-| `401` | Unauthorized | Invalid webhook signature |
-| `403` | Forbidden | CSRF validation failed |
-| `429` | Too Many Requests | Rate limit exceeded |
-| `500` | Internal Server Error | Server-side processing error |
-| `503` | Service Unavailable | Health check failed |
+| HTTP Code | Error                 | Description                   |
+| --------- | --------------------- | ----------------------------- |
+| `400`     | Bad Request           | Missing or invalid parameters |
+| `401`     | Unauthorized          | Invalid webhook signature     |
+| `403`     | Forbidden             | CSRF validation failed        |
+| `429`     | Too Many Requests     | Rate limit exceeded           |
+| `500`     | Internal Server Error | Server-side processing error  |
+| `503`     | Service Unavailable   | Health check failed           |
 
 ---
 
@@ -395,13 +393,13 @@ curl http://localhost:3000/api/health | jq
 
 The webhook endpoint processes the following Polar.sh event types:
 
-| Event Type | Processed | Description |
-|------------|-----------|-------------|
-| `order.paid` | Yes | Payment completed successfully |
-| `order.created` | No | Order created but not paid |
-| `order.refunded` | No | Order was refunded |
-| `subscription.created` | No | Subscription started |
-| `subscription.cancelled` | No | Subscription cancelled |
+| Event Type               | Processed | Description                    |
+| ------------------------ | --------- | ------------------------------ |
+| `order.paid`             | Yes       | Payment completed successfully |
+| `order.created`          | No        | Order created but not paid     |
+| `order.refunded`         | No        | Order was refunded             |
+| `subscription.created`   | No        | Subscription started           |
+| `subscription.cancelled` | No        | Subscription cancelled         |
 
 Only `order.paid` events trigger customer creation and GitHub invitations.
 

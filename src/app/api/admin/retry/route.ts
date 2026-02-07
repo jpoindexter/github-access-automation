@@ -26,10 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!customer.github_username) {
-      return NextResponse.json(
-        { error: 'Customer has no GitHub username' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Customer has no GitHub username' }, { status: 400 });
     }
 
     authLogger.info('Manual retry initiated', {
@@ -68,12 +65,7 @@ export async function POST(request: NextRequest) {
       const { https: cloneUrl } = getRepositoryCloneUrl();
       const repoUrl = `https://github.com/${process.env.GITHUB_ORG_OR_USER}/${process.env.GITHUB_REPO}`;
 
-      const emailResult = await sendWelcomeEmail(
-        customer.email,
-        customer.name,
-        repoUrl,
-        cloneUrl
-      );
+      const emailResult = await sendWelcomeEmail(customer.email, customer.name, repoUrl, cloneUrl);
 
       if (emailResult.success) {
         await db.markWelcomeEmailSent(customerId);
@@ -86,9 +78,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     authLogger.error('Manual retry error', error);
 
-    return NextResponse.json(
-      { error: 'Retry failed. Please check logs.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Retry failed. Please check logs.' }, { status: 500 });
   }
 }

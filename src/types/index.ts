@@ -90,14 +90,14 @@ export interface PolarWebhookMetadata {
   payment_method?: string;
   promo_code?: string;
   // Allow other arbitrary properties
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface PolarCustomFieldData {
   gh_username?: string;
   gh_user_id?: string; // Can be string as it's from input field
   // Allow other arbitrary custom fields
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**

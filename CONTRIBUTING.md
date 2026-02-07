@@ -94,6 +94,7 @@ type(scope): description
 ```
 
 Types:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -103,6 +104,7 @@ Types:
 - `chore`: Maintenance tasks
 
 Examples:
+
 ```
 feat(webhook): add retry logic for failed invitations
 fix(oauth): validate state parameter to prevent CSRF
@@ -162,6 +164,7 @@ src/
 ### Bug Reports
 
 Include:
+
 1. Description of the issue
 2. Steps to reproduce
 3. Expected behavior
@@ -172,6 +175,7 @@ Include:
 ### Feature Requests
 
 Include:
+
 1. Problem you're trying to solve
 2. Proposed solution
 3. Alternative solutions considered
@@ -182,6 +186,7 @@ Include:
 **Do NOT report security vulnerabilities through public GitHub issues.**
 
 Instead, please email security concerns directly. Include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact

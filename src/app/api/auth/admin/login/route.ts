@@ -54,9 +54,6 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     authLogger.error('Admin login error', error);
-    return NextResponse.json(
-      { error: 'Login failed. Please try again.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Login failed. Please try again.' }, { status: 500 });
   }
 }

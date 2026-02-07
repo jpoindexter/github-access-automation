@@ -40,16 +40,16 @@ npm run dev
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript 5.x (strict mode) |
-| Database | PostgreSQL (Neon) |
-| GitHub API | Octokit REST |
-| Payments | Polar.sh Webhooks |
-| Email | Resend |
-| Validation | Zod |
-| Testing | Vitest |
+| Component  | Technology                   |
+| ---------- | ---------------------------- |
+| Framework  | Next.js 16 (App Router)      |
+| Language   | TypeScript 5.x (strict mode) |
+| Database   | PostgreSQL (Neon)            |
+| GitHub API | Octokit REST                 |
+| Payments   | Polar.sh Webhooks            |
+| Email      | Resend                       |
+| Validation | Zod                          |
+| Testing    | Vitest                       |
 
 ## Architecture
 
@@ -84,6 +84,7 @@ Your boilerplate repository must be:
 - **Read-Only Access** - Customers get `pull` permission only
 
 See [SECURITY.md](SECURITY.md) for complete security architecture including:
+
 - HMAC-SHA256 webhook signature verification
 - CSRF protection with timing-safe state validation
 - Rate limiting per endpoint
@@ -91,13 +92,13 @@ See [SECURITY.md](SECURITY.md) for complete security architecture including:
 
 ## API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/auth/github` | GET | Initiate GitHub OAuth flow |
-| `/api/auth/callback` | GET | Handle GitHub OAuth callback |
-| `/api/webhooks/polar` | POST | Process Polar payment webhooks |
-| `/api/webhooks/polar` | GET | Health check endpoint |
-| `/api/health` | GET | Application health check |
+| Endpoint              | Method | Description                    |
+| --------------------- | ------ | ------------------------------ |
+| `/api/auth/github`    | GET    | Initiate GitHub OAuth flow     |
+| `/api/auth/callback`  | GET    | Handle GitHub OAuth callback   |
+| `/api/webhooks/polar` | POST   | Process Polar payment webhooks |
+| `/api/webhooks/polar` | GET    | Health check endpoint          |
+| `/api/health`         | GET    | Application health check       |
 
 See [docs/API.md](docs/API.md) for complete API documentation with request/response examples.
 
@@ -244,6 +245,7 @@ docker run -p 3000:3000 --env-file .env.local github-access-automation
 ### Railway / Render
 
 See deployment configuration files:
+
 - `vercel.json` - Vercel configuration
 - `Dockerfile` - Docker multi-stage build
 - `docker-compose.yml` - Local development

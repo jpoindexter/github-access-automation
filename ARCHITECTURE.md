@@ -158,6 +158,7 @@ github-access-automation/
 **Purpose:** Wrapper around Neon PostgreSQL connection pool
 
 **Key methods:**
+
 - `createCustomer(data)` - Create customer record
 - `getCustomerByOrderId(orderId)` - Lookup by Polar order
 - `updateCustomerStatus(id, status)` - Track invitation status
@@ -165,6 +166,7 @@ github-access-automation/
 - `listCustomers(offset, limit)` - Pagination for admin
 
 **Tables:**
+
 - `customers` - 33 fields, comprehensive customer tracking
 - `oauth_sessions` - Temporary GitHub OAuth state
 
@@ -173,12 +175,14 @@ github-access-automation/
 **Purpose:** Handle GitHub OAuth 2.0 flow
 
 **Key functions:**
+
 - `getGitHubAuthUrl(redirectUri)` - Generate auth URL
 - `exchangeCodeForToken(code)` - Exchange auth code for token
 - `getGitHubUser(accessToken)` - Get user info
 - `authenticateWithGitHub(code)` - Complete flow
 
 **Flow:**
+
 1. User clicks GitHub OAuth link
 2. Redirect to GitHub authorize endpoint
 3. GitHub redirects back with authorization code
@@ -191,6 +195,7 @@ github-access-automation/
 **Purpose:** Interact with GitHub API for collaborator management
 
 **Key functions:**
+
 - `inviteToRepository(username, permission)` - Send repo invitation
 - `checkIfCollaborator(username)` - Check if already invited
 - `removeFromRepository(username)` - Revoke access
@@ -198,6 +203,7 @@ github-access-automation/
 - `getRepositoryCloneUrl()` - Get HTTPS/SSH clone URLs
 
 **Permissions:**
+
 - 'pull' = Read-only (default)
 - 'push' = Read/Write
 - 'admin' = Full admin access
@@ -207,12 +213,14 @@ github-access-automation/
 **Purpose:** Validate and parse Polar webhook payloads
 
 **Key functions:**
+
 - `verifyPolarWebhookSignature(payload, signature)` - HMAC-SHA256 verification
 - `parsePolarWebhook(payload)` - Parse JSON
 - `isPaidOrderEvent(webhook)` - Check if order.paid event
 - `extractCustomerDataFromWebhook(order)` - Extract metadata
 
 **Webhook Format:**
+
 ```json
 {
   "type": "order.paid",
@@ -238,11 +246,13 @@ github-access-automation/
 **Purpose:** Send transactional emails via Resend
 
 **Key functions:**
+
 - `sendEmail(options)` - Send raw email
 - `sendWelcomeEmail(email, name, repoUrl, cloneUrl)` - Welcome email
 - `sendErrorNotification(subject, error)` - Alert admins
 
 **Email types:**
+
 - Welcome email: Sent immediately after successful GitHub invite
 - Error notification: Sent to admin if errors occur
 
@@ -275,8 +285,8 @@ POST /api/webhooks/polar
 **Implementation:** HMAC-SHA256
 
 ```typescript
-hash = HMAC-SHA256(payload, POLAR_WEBHOOK_SECRET)
-verify: hash == signature
+hash = HMAC - SHA256(payload, POLAR_WEBHOOK_SECRET);
+verify: hash == signature;
 ```
 
 **Why:** Ensures webhook came from Polar
@@ -286,7 +296,7 @@ verify: hash == signature
 **Implementation:** State parameter in OAuth request
 
 ```typescript
-state = random()
+state = random();
 // OAuth request includes state
 // Callback verifies state matches
 ```
@@ -298,16 +308,17 @@ state = random()
 ```typescript
 response.cookies.set({
   name: 'github_user',
-  httpOnly: true,      // Can't be accessed by JavaScript
-  secure: true,        // Only sent over HTTPS
-  sameSite: 'lax',     // CSRF protection
-  maxAge: 15 * 60,     // 15 minute expiry
-})
+  httpOnly: true, // Can't be accessed by JavaScript
+  secure: true, // Only sent over HTTPS
+  sameSite: 'lax', // CSRF protection
+  maxAge: 15 * 60, // 15 minute expiry
+});
 ```
 
 ### 4. Environment Secrets
 
 **Never commit:**
+
 - `.env.local`
 - API keys
 - Webhook secrets
@@ -320,11 +331,13 @@ response.cookies.set({
 ### Webhook Processing Errors
 
 All errors trigger:
+
 1. Database record with error details
 2. Admin notification email
 3. Error response to Polar
 
 **Scenarios:**
+
 - Invalid signature → 401
 - Missing GitHub data → 400
 - GitHub API error → 500 (but recorded)
@@ -333,11 +346,13 @@ All errors trigger:
 ### Recovery
 
 **Manual intervention may be needed for:**
+
 - Failed GitHub invitations (user exists, permissions issue)
 - Failed emails (invalid email address)
 - Chargebacks (payment dispute)
 
 **Admin dashboard (future) will:**
+
 - Show failed records
 - Allow retry / manual action
 - Track payment issues
@@ -345,6 +360,7 @@ All errors trigger:
 ## Monitoring & Logs
 
 **Key logs to monitor:**
+
 ```
 "GitHub OAuth success for user: {username}"
 "Webhook processed successfully"
@@ -354,6 +370,7 @@ All errors trigger:
 ```
 
 **Database queries for monitoring:**
+
 ```sql
 -- Pending invitations
 SELECT * FROM customers WHERE status = 'pending';
@@ -371,10 +388,12 @@ SELECT status, COUNT(*) FROM customers GROUP BY status;
 ## Scalability
 
 ### Current Limitations
+
 - Single database connection pool
 - Synchronous processing (blocks while sending email)
 
 ### Future Improvements
+
 - Message queue (Bull, RabbitMQ) for async processing
 - Rate limiting on webhook endpoint
 - Database read replicas for reporting
@@ -384,12 +403,14 @@ SELECT status, COUNT(*) FROM customers GROUP BY status;
 ## Dependencies
 
 **Core:**
+
 - `next`: Framework
 - `pg`: PostgreSQL client
 - `@octokit/rest`: GitHub API client
 - `resend`: Email service
 
 **Development:**
+
 - `typescript`
 - `@types/node`
 - `@types/react`

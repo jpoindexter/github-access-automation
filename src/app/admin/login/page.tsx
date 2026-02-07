@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
         const data = await response.json();
         setError(data.error || 'Invalid password');
       }
-    } catch (err) {
+    } catch {
       setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
@@ -60,9 +60,7 @@ export default function AdminLoginPage() {
             />
           </div>
 
-          {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">{error}</div>
-          )}
+          {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">{error}</div>}
 
           <button
             type="submit"

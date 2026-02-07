@@ -194,11 +194,10 @@ describe('Email Service', () => {
       });
 
       const { sendErrorNotification } = await import('@/lib/email');
-      const result = await sendErrorNotification(
-        'GitHub Invitation Failed',
-        'User not found',
-        { username: 'johndoe', customerId: '123' }
-      );
+      const result = await sendErrorNotification('GitHub Invitation Failed', 'User not found', {
+        username: 'johndoe',
+        customerId: '123',
+      });
 
       expect(result.success).toBe(true);
     });
@@ -210,10 +209,7 @@ describe('Email Service', () => {
       });
 
       const { sendErrorNotification } = await import('@/lib/email');
-      const result = await sendErrorNotification(
-        'Database Error',
-        'Connection timeout'
-      );
+      const result = await sendErrorNotification('Database Error', 'Connection timeout');
 
       expect(result.success).toBe(true);
     });

@@ -35,6 +35,7 @@ npm run dev
 **Endpoint:** `GET http://localhost:3000/api/auth/github`
 
 **Expected behavior:**
+
 1. Clicking link redirects to GitHub authorization page
 2. GitHub asks for permission to read user email
 3. User authorizes
@@ -43,15 +44,17 @@ npm run dev
 6. Redirected to Polar checkout with GitHub username in params
 
 **Test:**
+
 ```bash
 # Open browser
 curl -L http://localhost:3000/api/auth/github
 ```
 
 **Check cookies:**
+
 ```javascript
 // In browser console
-document.cookie // Should see: github_user={...}
+document.cookie; // Should see: github_user={...}
 ```
 
 ### 2. Test Polar Webhook Signature Verification
@@ -59,6 +62,7 @@ document.cookie // Should see: github_user={...}
 **Endpoint:** `POST http://localhost:3000/api/webhooks/polar`
 
 **Test with cURL:**
+
 ```bash
 # Get webhook secret from .env.local
 WEBHOOK_SECRET="your_polar_webhook_secret"
@@ -77,6 +81,7 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
 ```
 
 **Expected response:**
+
 ```json
 {
   "success": true,
@@ -90,11 +95,13 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
 ### 3. Test Complete User Flow (Sandbox)
 
 #### A. Start GitHub OAuth
+
 1. Visit `http://localhost:3000/api/auth/github`
 2. Authorize with your GitHub account
 3. Check browser cookies for `github_user`
 
 #### B. Complete Polar Sandbox Payment
+
 1. You're redirected to Polar sandbox checkout
 2. Fill in test payment details:
    - Email: test@example.com
@@ -105,6 +112,7 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
 3. Click "Pay"
 
 #### C. Verify Webhook Processing
+
 1. Check your email (or Resend logs) for welcome email
 2. Verify in GitHub that you're invited to the repo
 3. Check database:
@@ -114,6 +122,7 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
    ```
 
 **Database should show:**
+
 - status: 'active'
 - invitation_sent_at: (timestamp)
 - welcome_email_sent: true
@@ -122,6 +131,7 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
 ### 4. Test Error Scenarios
 
 #### A. Invalid Webhook Signature
+
 ```bash
 curl -X POST http://localhost:3000/api/webhooks/polar \
   -H "Content-Type: application/json" \
@@ -132,6 +142,7 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
 **Expected:** 401 Unauthorized
 
 #### B. Missing GitHub User Data
+
 ```bash
 PAYLOAD='{"type":"order.paid","data":{"id":"test-2","status":"paid","amount":9999,"currency":"usd"}}'
 SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" -hex | cut -d' ' -f2)
@@ -145,6 +156,7 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
 **Expected:** 400 Bad Request with error message
 
 #### C. User Already Invited
+
 ```bash
 # Run the same webhook twice with same order ID
 # Second request should return: "Customer already processed"
@@ -153,18 +165,21 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
 ### 5. Monitor Logs
 
 **GitHub OAuth logs:**
+
 ```bash
 # Check for: "GitHub OAuth success for user: ..."
 npm run dev | grep "GitHub OAuth"
 ```
 
 **Webhook processing logs:**
+
 ```bash
 # Check for: "Webhook processed successfully"
 npm run dev | grep "Webhook processed"
 ```
 
 **Database queries:**
+
 ```bash
 psql $DATABASE_URL
 
@@ -199,12 +214,14 @@ After successful webhook, verify GitHub invitation:
 ### 7. Test Email Delivery
 
 **Resend Dashboard:**
+
 1. Go to https://resend.com/emails
 2. Filter by your test email
 3. Verify email rendered correctly
 4. Check links work
 
 **Check email content includes:**
+
 - Customer name
 - Repository clone URL
 - GitHub repository link
@@ -217,6 +234,7 @@ After successful webhook, verify GitHub invitation:
 **Cause:** Secret key mismatch or payload encoding
 
 **Solution:**
+
 1. Verify `POLAR_WEBHOOK_SECRET` in `.env.local`
 2. Ensure payload is raw body (not stringified)
 3. Check signature calculation uses SHA256
@@ -224,11 +242,13 @@ After successful webhook, verify GitHub invitation:
 ### Issue: GitHub invitation fails
 
 **Causes:**
+
 - Token doesn't have `repo` scope
 - User already a collaborator
 - Invalid repository name
 
 **Solution:**
+
 1. Verify `GITHUB_TOKEN` has `repo` scope
 2. Check `GITHUB_ORG_OR_USER` and `GITHUB_REPO` are correct
 3. Test with: `curl -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/user`
@@ -236,11 +256,13 @@ After successful webhook, verify GitHub invitation:
 ### Issue: Welcome email not sent
 
 **Causes:**
+
 - Invalid `RESEND_API_KEY`
 - Email domain not verified in Resend
 - Typo in `RESEND_FROM_EMAIL`
 
 **Solution:**
+
 1. Test Resend API: `curl -H "Authorization: Bearer $RESEND_API_KEY" https://api.resend.com/emails`
 2. Verify sender domain in Resend dashboard
 3. Check email address matches verified domain
@@ -250,6 +272,7 @@ After successful webhook, verify GitHub invitation:
 **Cause:** `DATABASE_URL` incorrect or database down
 
 **Solution:**
+
 ```bash
 # Test connection
 psql $DATABASE_URL -c "SELECT version();"
@@ -287,6 +310,7 @@ npm install -g artillery
 ## Next Steps
 
 Once testing passes:
+
 1. Deploy to production server (Vercel, Railway, etc.)
 2. Update Polar webhook URL to production domain
 3. Test with real payment in Polar production

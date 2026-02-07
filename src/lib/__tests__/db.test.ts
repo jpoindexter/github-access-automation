@@ -22,7 +22,7 @@ const mockOn = vi.fn((event: string, handler: (...args: unknown[]) => void) => {
 // Helper to emit events for testing
 function emitPoolEvent(event: string, ...args: unknown[]) {
   if (eventHandlers[event]) {
-    eventHandlers[event].forEach(handler => handler(...args));
+    eventHandlers[event].forEach((handler) => handler(...args));
   }
 }
 
@@ -180,10 +180,9 @@ describe('Database Operations', () => {
       const result = await db.getCustomerByEmail('john@example.com');
 
       expect(result).toEqual(mockCustomer);
-      expect(mockQuery).toHaveBeenCalledWith(
-        'SELECT * FROM customers WHERE email = $1;',
-        ['john@example.com']
-      );
+      expect(mockQuery).toHaveBeenCalledWith('SELECT * FROM customers WHERE email = $1;', [
+        'john@example.com',
+      ]);
     });
 
     it('should return null when customer not found', async () => {
@@ -213,10 +212,9 @@ describe('Database Operations', () => {
       const result = await db.getCustomerByOrderId('ord_123');
 
       expect(result).toEqual(mockCustomer);
-      expect(mockQuery).toHaveBeenCalledWith(
-        'SELECT * FROM customers WHERE polar_order_id = $1;',
-        ['ord_123']
-      );
+      expect(mockQuery).toHaveBeenCalledWith('SELECT * FROM customers WHERE polar_order_id = $1;', [
+        'ord_123',
+      ]);
     });
 
     it('should return null when order not found', async () => {
@@ -279,10 +277,12 @@ describe('Database Operations', () => {
       const result = await db.updateCustomerStatus('123', 'invited');
 
       expect(result).toEqual(mockCustomer);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE customers'),
-        ['123', 'invited', null, null]
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('UPDATE customers'), [
+        '123',
+        'invited',
+        null,
+        null,
+      ]);
     });
 
     it('should update customer status with invitation details', async () => {
@@ -301,10 +301,12 @@ describe('Database Operations', () => {
       const result = await db.updateCustomerStatus('123', 'invited', invitedAt);
 
       expect(result).toEqual(mockCustomer);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE customers'),
-        ['123', 'invited', invitedAt, null]
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('UPDATE customers'), [
+        '123',
+        'invited',
+        invitedAt,
+        null,
+      ]);
     });
 
     it('should update status with error message', async () => {
@@ -327,10 +329,12 @@ describe('Database Operations', () => {
       );
 
       expect(result).toEqual(mockCustomer);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE customers'),
-        ['123', 'invited_failed', null, 'User not found']
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('UPDATE customers'), [
+        '123',
+        'invited_failed',
+        null,
+        'User not found',
+      ]);
     });
   });
 
@@ -349,10 +353,9 @@ describe('Database Operations', () => {
       const result = await db.markWelcomeEmailSent('123');
 
       expect(result).toEqual(mockCustomer);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('welcome_email_sent = true'),
-        ['123']
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('welcome_email_sent = true'), [
+        '123',
+      ]);
     });
   });
 
@@ -372,10 +375,10 @@ describe('Database Operations', () => {
       const result = await db.recordChargeback('123');
 
       expect(result).toEqual(mockCustomer);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('chargebacked = true'),
-        ['123', null]
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('chargebacked = true'), [
+        '123',
+        null,
+      ]);
     });
 
     it('should record chargeback with reason', async () => {
@@ -393,10 +396,7 @@ describe('Database Operations', () => {
       const result = await db.recordChargeback('123', 'Fraudulent transaction');
 
       expect(result).toEqual(mockCustomer);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.anything(),
-        ['123', 'Fraudulent transaction']
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.anything(), ['123', 'Fraudulent transaction']);
     });
   });
 
@@ -415,10 +415,10 @@ describe('Database Operations', () => {
       const result = await db.revokeAccess('123', 'Chargeback initiated');
 
       expect(result).toEqual(mockCustomer);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('access_revoked = true'),
-        ['123', 'Chargeback initiated']
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('access_revoked = true'), [
+        '123',
+        'Chargeback initiated',
+      ]);
     });
 
     it('should revoke customer access without reason', async () => {
@@ -436,10 +436,10 @@ describe('Database Operations', () => {
       const result = await db.revokeAccess('456');
 
       expect(result).toEqual(mockCustomer);
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('access_revoked = true'),
-        ['456', null]
-      );
+      expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining('access_revoked = true'), [
+        '456',
+        null,
+      ]);
     });
   });
 
@@ -540,10 +540,9 @@ describe('Database Operations', () => {
 
         await db.deleteOAuthSession('session_123');
 
-        expect(mockQuery).toHaveBeenCalledWith(
-          'DELETE FROM oauth_sessions WHERE id = $1;',
-          ['session_123']
-        );
+        expect(mockQuery).toHaveBeenCalledWith('DELETE FROM oauth_sessions WHERE id = $1;', [
+          'session_123',
+        ]);
       });
     });
 
@@ -597,10 +596,7 @@ describe('Database Operations', () => {
 
       await db.query('SELECT * FROM customers WHERE id = $1', ['123']);
 
-      expect(mockQuery).toHaveBeenCalledWith(
-        'SELECT * FROM customers WHERE id = $1',
-        ['123']
-      );
+      expect(mockQuery).toHaveBeenCalledWith('SELECT * FROM customers WHERE id = $1', ['123']);
     });
   });
 
@@ -633,9 +629,7 @@ describe('Database Operations', () => {
       // Emit a connect event to trigger the handler
       emitPoolEvent('connect');
 
-      expect(dbLogger.debug).toHaveBeenCalledWith(
-        'New database connection established'
-      );
+      expect(dbLogger.debug).toHaveBeenCalledWith('New database connection established');
     });
   });
 

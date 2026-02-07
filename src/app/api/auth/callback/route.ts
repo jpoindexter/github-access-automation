@@ -10,7 +10,12 @@ import { db } from '@/lib/db';
 import { authLogger } from '@/lib/logger';
 
 // Allowed redirect domains for open redirect protection
-const ALLOWED_REDIRECT_DOMAINS = ['polar.sh', 'www.polar.sh', 'sandbox.polar.sh', 'sandbox-api.polar.sh'];
+const ALLOWED_REDIRECT_DOMAINS = [
+  'polar.sh',
+  'www.polar.sh',
+  'sandbox.polar.sh',
+  'sandbox-api.polar.sh',
+];
 
 export async function GET(request: NextRequest) {
   try {
@@ -73,10 +78,7 @@ export async function GET(request: NextRequest) {
         hostname: redirectUrl.hostname,
         url: checkoutBaseUrl,
       });
-      return NextResponse.json(
-        { error: 'Invalid redirect destination' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid redirect destination' }, { status: 400 });
     }
 
     // Pass GitHub username as query param for Polar custom field prefill

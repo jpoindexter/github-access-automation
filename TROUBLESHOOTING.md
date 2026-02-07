@@ -91,21 +91,25 @@ curl -i -H "Authorization: Bearer $GITHUB_TOKEN" \
 ### Recent Logs Check
 
 **Vercel:**
+
 ```bash
 vercel logs --prod --since 1h
 ```
 
 **Railway:**
+
 ```bash
 railway logs --tail 100
 ```
 
 **Docker:**
+
 ```bash
 docker logs github-access-automation --tail 100 -f
 ```
 
 **Look for:**
+
 - Error messages
 - Failed webhook processing
 - Database connection errors
@@ -118,6 +122,7 @@ docker logs github-access-automation --tail 100 -f
 ### Webhook Signature Verification Fails
 
 **Symptoms:**
+
 - Webhook returns 401 Unauthorized
 - Log message: "Invalid Polar webhook signature"
 - Polar dashboard shows failed deliveries
@@ -127,6 +132,7 @@ docker logs github-access-automation --tail 100 -f
 #### 1. Wrong Webhook Secret
 
 **Diagnosis:**
+
 ```bash
 # Check your secret
 echo $POLAR_WEBHOOK_SECRET
@@ -135,6 +141,7 @@ echo $POLAR_WEBHOOK_SECRET
 ```
 
 **Solution:**
+
 ```bash
 # Update environment variable
 # Vercel:
@@ -151,6 +158,7 @@ docker restart github-access-automation
 #### 2. Payload Encoding Issue
 
 **Diagnosis:**
+
 ```typescript
 // Check how body is read in webhook handler
 const text = await req.text(); // ✅ Correct
@@ -163,12 +171,14 @@ Ensure raw body is used for signature verification. The default Next.js App Rout
 #### 3. Header Name Mismatch
 
 **Diagnosis:**
+
 ```bash
 # Check Polar webhook logs for header name
 # Could be: x-polar-signature, x-signature, signature
 ```
 
 **Solution:**
+
 ```typescript
 // src/app/api/webhooks/polar/route.ts
 const signature = req.headers.get('x-polar-signature'); // Adjust if needed
@@ -196,10 +206,12 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
 ### Webhook Payload Missing Data
 
 **Symptoms:**
+
 - Webhook processes but missing customer data
 - Error: "Missing required field: github_username"
 
 **Diagnosis:**
+
 ```bash
 # Check Polar webhook logs
 # Go to Polar dashboard → Webhooks → Recent deliveries
@@ -215,12 +227,14 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
    - Check `github_user` cookie exists
 
 2. **Check Polar checkout includes metadata:**
+
    ```typescript
    // Verify redirect to Polar includes GitHub username
    const checkoutUrl = `${polarCheckoutUrl}?metadata[github_username]=${username}`;
    ```
 
 3. **Add fallback for missing data:**
+
    ```typescript
    // src/app/api/webhooks/polar/route.ts
    const githubUsername = order.metadata?.github_username;
@@ -236,11 +250,13 @@ curl -X POST http://localhost:3000/api/webhooks/polar \
 ### Webhook Timeout
 
 **Symptoms:**
+
 - Polar shows "Timed out" in webhook logs
 - Customer charged but not invited
 - Database record created but status = 'pending'
 
 **Diagnosis:**
+
 ```sql
 -- Check for pending customers
 SELECT id, email, github_username, status, invitation_error, created_at
@@ -260,6 +276,7 @@ ORDER BY created_at DESC;
 1. **Increase webhook timeout** (platform-specific):
 
    **Vercel:**
+
    ```typescript
    // src/app/api/webhooks/polar/route.ts
    export const maxDuration = 60; // seconds (Pro plan required for >10s)
@@ -314,11 +331,13 @@ ORDER BY created_at DESC;
 ### Duplicate Webhook Processing
 
 **Symptoms:**
+
 - Customer invited multiple times
 - Multiple welcome emails sent
 - Multiple database records with same order_id
 
 **Diagnosis:**
+
 ```sql
 -- Check for duplicate order IDs
 SELECT polar_order_id, COUNT(*) as count
@@ -348,7 +367,7 @@ if (existing) {
   return Response.json({
     success: true,
     message: 'Order already processed',
-    customerId: existing.id
+    customerId: existing.id,
   });
 }
 ```
@@ -386,24 +405,28 @@ curl -H "Authorization: Bearer $GITHUB_TOKEN" \
 #### 1. GitHub Username Doesn't Exist
 
 **Error in database:**
+
 ```sql
 SELECT invitation_error FROM customers WHERE email = 'customer@email.com';
 -- Result: "Not Found" or "404"
 ```
 
 **Solution:**
+
 - Ask customer for correct GitHub username
 - Manually invite: Repository → Settings → Collaborators → Add people
 
 #### 2. User Already a Collaborator
 
 **Error in database:**
+
 ```sql
 SELECT invitation_error FROM customers WHERE email = 'customer@email.com';
 -- Result: "Validation Failed" or "already a collaborator"
 ```
 
 **Solution:**
+
 - Verify in GitHub: Repository → Settings → Collaborators
 - If they have access, send welcome email manually
 - Update database: `UPDATE customers SET status = 'active' WHERE email = 'customer@email.com';`
@@ -411,6 +434,7 @@ SELECT invitation_error FROM customers WHERE email = 'customer@email.com';
 #### 3. Repository is Public
 
 **Diagnosis:**
+
 ```bash
 curl -H "Authorization: Bearer $GITHUB_TOKEN" \
   "https://api.github.com/repos/$GITHUB_ORG_OR_USER/$GITHUB_REPO" \
@@ -420,6 +444,7 @@ curl -H "Authorization: Bearer $GITHUB_TOKEN" \
 ```
 
 **Solution:**
+
 ```bash
 # Make repository private
 gh repo edit OWNER/REPO --visibility private
@@ -431,6 +456,7 @@ gh repo edit OWNER/REPO --visibility private
 #### 4. GitHub Token Expired or Invalid
 
 **Diagnosis:**
+
 ```bash
 curl -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/user
 
@@ -442,6 +468,7 @@ curl -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/user
 ```
 
 **Solution:**
+
 1. Go to GitHub Settings → Developer settings → Personal access tokens
 2. Tokens (classic) → Generate new token
 3. Select `repo` scope
@@ -455,6 +482,7 @@ curl -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/user
 #### 5. GitHub Rate Limit Exceeded
 
 **Diagnosis:**
+
 ```bash
 curl -H "Authorization: Bearer $GITHUB_TOKEN" \
   https://api.github.com/rate_limit
@@ -472,6 +500,7 @@ curl -H "Authorization: Bearer $GITHUB_TOKEN" \
 ```
 
 **Solution:**
+
 - Wait for rate limit reset (1 hour)
 - Authenticated requests have 5,000/hour limit (should be sufficient)
 - If hitting limit regularly, implement caching or request batching
@@ -481,6 +510,7 @@ curl -H "Authorization: Bearer $GITHUB_TOKEN" \
 If automation fails, invite manually:
 
 **Via GitHub CLI:**
+
 ```bash
 # Invite user
 gh api repos/OWNER/REPO/collaborators/USERNAME -X PUT \
@@ -491,6 +521,7 @@ gh api repos/OWNER/REPO/invitations
 ```
 
 **Via GitHub UI:**
+
 1. Go to repository
 2. Settings → Collaborators and teams
 3. Click "Add people"
@@ -499,6 +530,7 @@ gh api repos/OWNER/REPO/invitations
 6. Click "Add USERNAME to this repository"
 
 **Update database after manual invitation:**
+
 ```sql
 UPDATE customers
 SET status = 'active',
@@ -542,6 +574,7 @@ curl -X POST https://api.resend.com/emails \
 **Error:** 401 Unauthorized from Resend API
 
 **Solution:**
+
 1. Go to Resend dashboard → API Keys
 2. Generate new key
 3. Update environment variable:
@@ -555,6 +588,7 @@ curl -X POST https://api.resend.com/emails \
 **Error:** "Domain not verified" or similar
 
 **Solution:**
+
 1. Go to Resend dashboard → Domains
 2. Add your domain
 3. Add DNS records (SPF, DKIM, DMARC)
@@ -562,6 +596,7 @@ curl -X POST https://api.resend.com/emails \
 5. Use verified domain in `RESEND_FROM_EMAIL`
 
 **For testing, use Resend's default domain:**
+
 ```bash
 RESEND_FROM_EMAIL="onboarding@resend.dev"
 ```
@@ -569,14 +604,17 @@ RESEND_FROM_EMAIL="onboarding@resend.dev"
 #### 3. Email Address Invalid
 
 **Diagnosis:**
+
 ```sql
 -- Check email format
 SELECT email FROM customers WHERE email NOT LIKE '%@%.%';
 ```
 
 **Solution:**
+
 - Validate email format before saving to database
 - Add Zod validation:
+
   ```typescript
   import { z } from 'zod';
 
@@ -587,10 +625,12 @@ SELECT email FROM customers WHERE email NOT LIKE '%@%.%';
 #### 4. Email Went to Spam
 
 **Diagnosis:**
+
 - Check customer's spam/junk folder
 - Check Resend dashboard for delivery status
 
 **Solution:**
+
 1. **Improve email content:**
    - Avoid spam trigger words ("free", "click here", etc.)
    - Include plain text version
@@ -616,10 +656,7 @@ import { pool } from '@/lib/db';
 
 const customerId = 'customer-uuid';
 
-const result = await pool.query(
-  'SELECT * FROM customers WHERE id = $1',
-  [customerId]
-);
+const result = await pool.query('SELECT * FROM customers WHERE id = $1', [customerId]);
 
 const customer = result.rows[0];
 
@@ -632,17 +669,9 @@ const repoUrl = `https://github.com/${process.env.GITHUB_ORG_OR_USER}/${process.
 const cloneUrl = `https://github.com/${process.env.GITHUB_ORG_OR_USER}/${process.env.GITHUB_REPO}.git`;
 
 try {
-  await sendWelcomeEmail(
-    customer.email,
-    customer.name,
-    repoUrl,
-    cloneUrl
-  );
+  await sendWelcomeEmail(customer.email, customer.name, repoUrl, cloneUrl);
 
-  await pool.query(
-    'UPDATE customers SET welcome_email_sent = true WHERE id = $1',
-    [customerId]
-  );
+  await pool.query('UPDATE customers SET welcome_email_sent = true WHERE id = $1', [customerId]);
 
   console.log('✅ Email resent to:', customer.email);
 } catch (error) {
@@ -662,6 +691,7 @@ npx tsx scripts/resend-welcome-email.ts
 ### Connection Refused
 
 **Error:**
+
 ```
 Error: connect ECONNREFUSED
 ```
@@ -672,6 +702,7 @@ Error: connect ECONNREFUSED
    - Check database provider status page (Neon, Supabase)
 
 2. **Wrong connection string**
+
    ```bash
    # Test connection
    psql "$DATABASE_URL"
@@ -698,11 +729,13 @@ psql "$DATABASE_URL" -c "SELECT 1;"
 ### Too Many Connections
 
 **Error:**
+
 ```
 Error: remaining connection slots are reserved for non-replication superuser connections
 ```
 
 **Causes:**
+
 - Connection pool not properly configured
 - Too many concurrent requests
 - Connections not being released
@@ -710,17 +743,19 @@ Error: remaining connection slots are reserved for non-replication superuser con
 **Solution:**
 
 1. **Configure connection pool:**
+
    ```typescript
    // src/lib/db.ts
    export const pool = new Pool({
      connectionString: process.env.DATABASE_URL,
-     max: 20,          // Maximum pool size
+     max: 20, // Maximum pool size
      idleTimeoutMillis: 30000,
      connectionTimeoutMillis: 2000,
    });
    ```
 
 2. **Use connection pooler** (Neon, Supabase):
+
    ```bash
    # Neon pooled connection
    DATABASE_URL="postgresql://user:pass@pooler.region.neon.tech/db?sslmode=require"
@@ -741,6 +776,7 @@ Error: remaining connection slots are reserved for non-replication superuser con
 ### SSL/TLS Errors
 
 **Error:**
+
 ```
 Error: no pg_hba.conf entry for host
 ```
@@ -763,6 +799,7 @@ DATABASE_URL="postgresql://user:pass@localhost:5432/db?sslmode=disable"
 ### Migration Failures
 
 **Error:**
+
 ```
 Error: relation "customers" already exists
 ```
@@ -786,11 +823,13 @@ npm run db:migrate
 ### Redirect Loop After GitHub Auth
 
 **Symptoms:**
+
 - User authorizes GitHub
 - Redirected back to callback
 - Infinite redirect loop
 
 **Diagnosis:**
+
 ```bash
 # Check callback URL in GitHub OAuth app
 # Should be: https://your-domain.com/api/auth/callback
@@ -813,11 +852,13 @@ npm run db:migrate
 ### State Validation Fails
 
 **Error:**
+
 ```
 Invalid state parameter
 ```
 
 **Causes:**
+
 - State cookie expired (15 min TTL)
 - Cookie not set properly
 - User took too long to authorize
@@ -825,6 +866,7 @@ Invalid state parameter
 **Solution:**
 
 1. **Increase state expiration:**
+
    ```typescript
    // src/lib/github-oauth.ts
    const stateExpiration = 30 * 60 * 1000; // 30 minutes instead of 15
@@ -845,11 +887,13 @@ Invalid state parameter
 ### GitHub Username Not Captured
 
 **Symptoms:**
+
 - OAuth completes successfully
 - Redirected to Polar
 - No GitHub username in database
 
 **Diagnosis:**
+
 ```bash
 # Check oauth_sessions table
 psql $DATABASE_URL -c "SELECT * FROM oauth_sessions ORDER BY created_at DESC LIMIT 5;"
@@ -858,12 +902,14 @@ psql $DATABASE_URL -c "SELECT * FROM oauth_sessions ORDER BY created_at DESC LIM
 **Solution:**
 
 1. **Verify GitHub OAuth scopes:**
+
    ```typescript
    // src/lib/github-oauth.ts
    const scopes = 'user:email'; // Add 'read:user' if needed
    ```
 
 2. **Check user data extraction:**
+
    ```typescript
    // src/app/api/auth/callback/route.ts
    const userData = await getGitHubUser(accessToken);
@@ -908,6 +954,7 @@ console.log('Webhook processed in', Date.now() - start, 'ms');
 **Solutions:**
 
 1. **Process asynchronously:**
+
    ```typescript
    // Quick webhook response
    await addToQueue({ orderId: order.id, githubUsername });
@@ -943,6 +990,7 @@ docker stats github-access-automation
 **Solutions:**
 
 1. **Optimize database queries:**
+
    ```typescript
    // Use specific fields instead of SELECT *
    const result = await pool.query(
@@ -952,6 +1000,7 @@ docker stats github-access-automation
    ```
 
 2. **Close connections:**
+
    ```typescript
    // Always release database connections
    client.release();
@@ -966,6 +1015,7 @@ docker stats github-access-automation
    - Increase memory in service settings
 
    **Docker:**
+
    ```bash
    docker run -m 512m github-access-automation
    ```
@@ -977,6 +1027,7 @@ docker stats github-access-automation
 ### "Missing required environment variable: GITHUB_TOKEN"
 
 **Fix:**
+
 ```bash
 # Add environment variable
 vercel env add GITHUB_TOKEN production
@@ -990,6 +1041,7 @@ railway variables
 ### "Repository not found or no permission"
 
 **Fix:**
+
 1. Verify repository name is correct
 2. Check GitHub token has access to repository
 3. Ensure repository is private
@@ -1003,6 +1055,7 @@ curl -H "Authorization: Bearer $GITHUB_TOKEN" \
 ### "Bad credentials" from GitHub API
 
 **Fix:**
+
 1. GitHub token expired or invalid
 2. Generate new token
 3. Update environment variable
@@ -1011,6 +1064,7 @@ curl -H "Authorization: Bearer $GITHUB_TOKEN" \
 ### "Database schema not migrated"
 
 **Fix:**
+
 ```bash
 # Run migrations
 npm run db:migrate
@@ -1031,10 +1085,7 @@ const githubUsername = order.metadata?.github_username;
 
 if (!githubUsername) {
   console.error('Missing GitHub username in webhook payload');
-  return Response.json(
-    { error: 'Missing GitHub username' },
-    { status: 400 }
-  );
+  return Response.json({ error: 'Missing GitHub username' }, { status: 400 });
 }
 ```
 
@@ -1053,6 +1104,7 @@ if (!githubUsername) {
    - GitHub: https://www.githubstatus.com
 
 2. **Rollback deployment:**
+
    ```bash
    # Vercel
    vercel rollback
@@ -1062,6 +1114,7 @@ if (!githubUsername) {
    ```
 
 3. **Check application logs:**
+
    ```bash
    vercel logs --prod --since 1h
    railway logs --tail 100
@@ -1082,6 +1135,7 @@ if (!githubUsername) {
    - Or disable webhook endpoint temporarily
 
 2. **Assess damage:**
+
    ```sql
    -- Check table integrity
    SELECT COUNT(*) FROM customers;
@@ -1091,6 +1145,7 @@ if (!githubUsername) {
    ```
 
 3. **Restore from backup:**
+
    ```bash
    # Neon: Go to dashboard → Backups → Restore
    # Supabase: Go to dashboard → Database → Backups → Restore
@@ -1100,6 +1155,7 @@ if (!githubUsername) {
    ```
 
 4. **Verify data:**
+
    ```sql
    SELECT COUNT(*) FROM customers;
    SELECT MAX(created_at) FROM customers;
@@ -1134,6 +1190,7 @@ if (!githubUsername) {
    - Go to Orders → Find order → Refund
 
 3. **Remove repository access:**
+
    ```bash
    gh api repos/OWNER/REPO/collaborators/USERNAME -X DELETE
    ```

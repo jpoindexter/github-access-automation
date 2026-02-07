@@ -24,7 +24,7 @@ export function verifyPolarWebhookSignature(
 
   // Handle multiple signatures (space separated)
   // Format: "v1,signature" or just "signature" (legacy)
-  const signatures = signatureHeader.split(' ').map(s => {
+  const signatures = signatureHeader.split(' ').map((s) => {
     const parts = s.split(',');
     if (parts.length === 2) {
       return { scheme: parts[0], value: parts[1] };
@@ -36,8 +36,8 @@ export function verifyPolarWebhookSignature(
   if (id && timestamp) {
     const toSign = `${id}.${timestamp}.${payload}`;
     const hash = createHmac('sha256', secret).update(toSign).digest('base64');
-    
-    if (signatures.some(s => s.scheme === 'v1' && constantTimeCompare(s.value, hash))) {
+
+    if (signatures.some((s) => s.scheme === 'v1' && constantTimeCompare(s.value, hash))) {
       return true;
     }
   }
@@ -46,15 +46,19 @@ export function verifyPolarWebhookSignature(
   if (timestamp) {
     const toSign = `${timestamp}.${payload}`;
     const hash = createHmac('sha256', secret).update(toSign).digest('base64');
-    
-    if (signatures.some(s => s.scheme === 'v1' && constantTimeCompare(s.value, hash))) {
+
+    if (signatures.some((s) => s.scheme === 'v1' && constantTimeCompare(s.value, hash))) {
       return true;
     }
   }
 
   // Strategy 3: Raw Payload (legacy) -> Hex
   const hashHex = createHmac('sha256', secret).update(payload).digest('hex');
-  if (signatures.some(s => (s.scheme === 'legacy' || s.scheme === 'v1') && constantTimeCompare(s.value, hashHex))) {
+  if (
+    signatures.some(
+      (s) => (s.scheme === 'legacy' || s.scheme === 'v1') && constantTimeCompare(s.value, hashHex)
+    )
+  ) {
     return true;
   }
 
@@ -68,7 +72,7 @@ export function verifyPolarWebhookSignature(
  */
 function constantTimeCompare(a: string, b: string): boolean {
   if (!a || !b) return false;
-  
+
   const maxLen = Math.max(a.length, b.length);
   const bufferA = Buffer.alloc(maxLen);
   const bufferB = Buffer.alloc(maxLen);
@@ -78,7 +82,6 @@ function constantTimeCompare(a: string, b: string): boolean {
 
   // First compare lengths, then contents (both in constant time)
   const lengthsMatch = a.length === b.length;
-  // @ts-ignore - buffer comparison is valid
   const contentsMatch = timingSafeEqual(bufferA, bufferB);
 
   return lengthsMatch && contentsMatch;

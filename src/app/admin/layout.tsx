@@ -22,10 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <h1 className="text-xl font-bold">GitHub Access Admin</h1>
 
           <form action="/api/auth/admin/logout" method="POST">
-            <button
-              type="submit"
-              className="text-sm text-gray-600 hover:text-gray-900"
-            >
+            <button type="submit" className="text-sm text-gray-600 hover:text-gray-900">
               Logout
             </button>
           </form>

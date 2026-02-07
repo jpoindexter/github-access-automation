@@ -160,11 +160,7 @@ describe('Error Handler', () => {
 
     describe('Case insensitivity', () => {
       it('should match patterns case-insensitively', () => {
-        const errors = [
-          'RATE LIMIT EXCEEDED',
-          'Rate Limit Exceeded',
-          'rate limit exceeded',
-        ];
+        const errors = ['RATE LIMIT EXCEEDED', 'Rate Limit Exceeded', 'rate limit exceeded'];
 
         errors.forEach((errorMsg) => {
           const result = categorizeError(new Error(errorMsg));
@@ -183,9 +179,7 @@ describe('Error Handler', () => {
 
         // Verify it categorizes consistently
         expect(result.category).toBeDefined();
-        expect([ErrorCategory.NETWORK, ErrorCategory.DATABASE]).toContain(
-          result.category
-        );
+        expect([ErrorCategory.NETWORK, ErrorCategory.DATABASE]).toContain(result.category);
       });
     });
   });

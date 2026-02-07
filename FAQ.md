@@ -20,6 +20,7 @@ Common questions about the GitHub Access Automation tool.
 GitHub Access Automation is a Next.js application that automatically grants customers access to your private GitHub repository after they complete a purchase through Polar.sh. It handles the entire flow: GitHub OAuth, payment processing, repository invitations, and welcome emails.
 
 **Perfect for:**
+
 - Selling access to boilerplate code
 - Distributing starter kits
 - Providing course materials
@@ -49,6 +50,7 @@ GitHub Access Automation is a Next.js application that automatically grants cust
 **The tool itself is free and open-source (MIT license).**
 
 **Costs you'll incur:**
+
 - **Polar.sh**: 5% + payment processing fees (Stripe/PayPal)
 - **Database**: Free tier available (Neon, Supabase) or ~$5/month
 - **Hosting**: Free tier available (Vercel, Railway) or ~$5-20/month
@@ -60,6 +62,7 @@ GitHub Access Automation is a Next.js application that automatically grants cust
 ### Can I use this without Polar.sh?
 
 Yes, but you'll need to modify the webhook handler. The current version is optimized for Polar.sh webhooks. You can adapt it for:
+
 - Stripe Checkout
 - Gumroad
 - Lemon Squeezy
@@ -75,6 +78,7 @@ See `src/app/api/webhooks/polar/route.ts` for the webhook handler implementation
 ### Do I need coding experience?
 
 **Basic technical knowledge is helpful but not required.** You should be comfortable with:
+
 - Using the command line
 - Setting environment variables
 - Deploying to Vercel/Railway (or following deployment tutorials)
@@ -106,11 +110,13 @@ If you can follow the README instructions, you can set this up.
 ### How many customers can it handle?
 
 **The bottleneck is GitHub API rate limits:**
+
 - **5,000 requests per hour** with authenticated requests
 - **Each invitation = 1 request**
 - **Theoretical max**: ~120,000 customers/day
 
 **In practice:**
+
 - Most indie products: <100 customers/day
 - Database can handle millions of records
 - Horizontal scaling possible if needed
@@ -145,6 +151,7 @@ Yes! Polar.sh supports custom checkout fields. To collect them:
    - Add custom fields (company, use_case, etc.)
 
 2. **Update database schema**:
+
    ```sql
    ALTER TABLE customers ADD COLUMN custom_field VARCHAR(255);
    ```
@@ -193,6 +200,7 @@ await inviteToRepository(username, permission);
 Not automatically, but you can implement this:
 
 1. **Detect refund webhook** from Polar:
+
    ```typescript
    if (webhook.type === 'order.refunded') {
      await removeFromRepository(githubUsername);
@@ -235,6 +243,7 @@ FROM customers;
 ```
 
 **External analytics:**
+
 - Polar.sh has built-in analytics
 - Add Google Analytics to landing page
 - Use PostHog/Mixpanel for advanced tracking
@@ -288,6 +297,7 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
 - **PII redaction in logs**: Sensitive data never logged
 
 **Data collected:**
+
 - Email (for communication)
 - Name (for personalization)
 - GitHub username (for invitations)
@@ -295,6 +305,7 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
 - Optional: company, use case, referral source
 
 **Data NOT collected:**
+
 - Credit card numbers (handled by Polar/Stripe)
 - Passwords (OAuth only)
 - Browsing history
@@ -314,6 +325,7 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
 - ❌ Cannot delete repository
 
 **Repository visibility:**
+
 - Private repository = only invited collaborators can see it
 - Public repository = anyone can see it (not recommended for paid products)
 
@@ -331,6 +343,7 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
    - Redeploy application
 
 3. **Audit repository access**:
+
    ```bash
    # List all collaborators
    gh api repos/OWNER/REPO/collaborators
@@ -342,6 +355,7 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
    - Look for unauthorized access
 
 **Prevention:**
+
 - Use token with minimal required scopes (`repo` only)
 - Rotate tokens periodically (every 90 days)
 - Never commit tokens to version control
@@ -358,6 +372,7 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
 - **Minimal scopes**: Only request `user:email` scope
 
 **What we do NOT do:**
+
 - Store GitHub access tokens (only use for initial auth)
 - Request write permissions
 - Access private user data beyond email
@@ -374,6 +389,7 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
    - Response: Revoke token immediately
 
 **Response plan:**
+
 1. Take server offline
 2. Revoke GitHub token
 3. Reset all environment variables
@@ -382,6 +398,7 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
 6. Restore from clean backup
 
 **Best practices:**
+
 - Enable 2FA on all accounts (GitHub, Polar, Hosting)
 - Use strong, unique passwords
 - Keep dependencies updated (`npm audit`)
@@ -395,6 +412,7 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
 ### What payment methods are supported?
 
 **Through Polar.sh:**
+
 - Credit/debit cards (Visa, Mastercard, Amex)
 - Apple Pay
 - Google Pay
@@ -417,6 +435,7 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
    - Confirm refund
 
 3. **Remove repository access**:
+
    ```bash
    # Option A: Direct API call
    curl -X DELETE \
@@ -466,6 +485,7 @@ if (webhook.type === 'order.disputed') {
 ```
 
 **Manual handling:**
+
 1. Polar notifies you of chargeback
 2. Remove repository access immediately
 3. Update database with chargeback status
@@ -476,6 +496,7 @@ if (webhook.type === 'order.disputed') {
 **Yes!** Create multiple products in Polar:
 
 **Example tiers:**
+
 - **Basic** ($49) → Read-only access to main branch
 - **Pro** ($99) → Access to main + examples branches
 - **Enterprise** ($299) → Write access + priority support
@@ -498,6 +519,7 @@ if (productId === 'basic-tier-id') {
 ### Do you take a cut of my sales?
 
 **No.** This is open-source software (MIT license). You pay:
+
 - Polar.sh fees (5% + payment processing)
 - Your infrastructure costs (database, hosting, email)
 
@@ -506,6 +528,7 @@ if (productId === 'basic-tier-id') {
 ### What currency is supported?
 
 **All major currencies through Polar.sh:**
+
 - USD (US Dollar)
 - EUR (Euro)
 - GBP (British Pound)
@@ -526,11 +549,13 @@ Yes, but you'll need to modify the webhook handler. Current implementation is fo
 **To integrate Stripe:**
 
 1. Install Stripe SDK:
+
    ```bash
    npm install stripe
    ```
 
 2. Create Stripe webhook handler:
+
    ```typescript
    // src/app/api/webhooks/stripe/route.ts
    import Stripe from 'stripe';
@@ -540,11 +565,7 @@ Yes, but you'll need to modify the webhook handler. Current implementation is fo
      const sig = req.headers.get('stripe-signature')!;
      const body = await req.text();
 
-     const event = stripe.webhooks.constructEvent(
-       body,
-       sig,
-       process.env.STRIPE_WEBHOOK_SECRET!
-     );
+     const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
 
      if (event.type === 'checkout.session.completed') {
        const session = event.data.object;
@@ -606,6 +627,7 @@ Your Next.js App
 ```
 
 Then:
+
 1. Install dependencies: `@octokit/rest`, `pg`, `resend`, `zod`
 2. Add environment variables to your `.env.local`
 3. Run database migrations
@@ -652,9 +674,7 @@ Or create a helper function:
 async function grantFullAccess(username: string) {
   const repos = ['main-repo', 'examples', 'templates', 'docs'];
 
-  await Promise.all(
-    repos.map(repo => inviteToRepository(username, 'pull', repo))
-  );
+  await Promise.all(repos.map((repo) => inviteToRepository(username, 'pull', repo)));
 }
 ```
 
@@ -722,6 +742,7 @@ curl -X PUT \
    - Validate email format
 
 **Check email logs:**
+
 - Resend dashboard → Emails
 - Filter by recipient email
 - Check delivery status
@@ -737,10 +758,7 @@ import { pool } from '@/lib/db';
 
 const customerId = 'customer-uuid';
 
-const result = await pool.query(
-  'SELECT * FROM customers WHERE id = $1',
-  [customerId]
-);
+const result = await pool.query('SELECT * FROM customers WHERE id = $1', [customerId]);
 
 const customer = result.rows[0];
 
@@ -778,6 +796,7 @@ See [TESTING.md](TESTING.md) for complete testing guide.
 **Troubleshooting steps:**
 
 1. **Verify secret is correct**:
+
    ```bash
    echo $POLAR_WEBHOOK_SECRET
    # Should match Polar dashboard exactly
@@ -792,6 +811,7 @@ See [TESTING.md](TESTING.md) for complete testing guide.
    - Don't JSON.parse() before verification
 
 4. **Test signature generation**:
+
    ```bash
    PAYLOAD='{"type":"order.paid","data":{}}'
    SECRET="polar_whs_..."

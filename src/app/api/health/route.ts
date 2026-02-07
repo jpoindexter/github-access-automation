@@ -136,10 +136,8 @@ export async function GET(_request: NextRequest) {
   }
 
   // Determine overall status
-  const allHealthy =
-    checks.services.database.healthy && checks.services.github.healthy;
-  const anyHealthy =
-    checks.services.database.healthy || checks.services.github.healthy;
+  const allHealthy = checks.services.database.healthy && checks.services.github.healthy;
+  const anyHealthy = checks.services.database.healthy || checks.services.github.healthy;
 
   if (allHealthy) {
     checks.status = 'ok';

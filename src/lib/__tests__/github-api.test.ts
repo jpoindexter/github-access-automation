@@ -55,9 +55,7 @@ describe('GitHub API', () => {
   describe('inviteToRepository', () => {
     it('should invite new user successfully', async () => {
       // User is not a collaborator
-      mockCheckCollaborator.mockRejectedValueOnce(
-        new Error('Not Found - 404')
-      );
+      mockCheckCollaborator.mockRejectedValueOnce(new Error('Not Found - 404'));
 
       // Invitation succeeds
       mockAddCollaborator.mockResolvedValueOnce({
@@ -83,9 +81,7 @@ describe('GitHub API', () => {
     });
 
     it('should invite with custom permission level', async () => {
-      mockCheckCollaborator.mockRejectedValueOnce(
-        new Error('Not Found - 404')
-      );
+      mockCheckCollaborator.mockRejectedValueOnce(new Error('Not Found - 404'));
 
       mockAddCollaborator.mockResolvedValueOnce({
         data: { id: 67890 },
@@ -121,9 +117,7 @@ describe('GitHub API', () => {
     });
 
     it('should handle GitHub API errors', async () => {
-      mockCheckCollaborator.mockRejectedValueOnce(
-        new Error('Not Found - 404')
-      );
+      mockCheckCollaborator.mockRejectedValueOnce(new Error('Not Found - 404'));
 
       mockAddCollaborator.mockRejectedValueOnce(
         new Error('Resource not accessible by integration')
@@ -146,9 +140,7 @@ describe('GitHub API', () => {
     });
 
     it('should handle unknown errors', async () => {
-      mockCheckCollaborator.mockRejectedValueOnce(
-        new Error('Not Found - 404')
-      );
+      mockCheckCollaborator.mockRejectedValueOnce(new Error('Not Found - 404'));
 
       mockAddCollaborator.mockRejectedValueOnce('String error');
 
@@ -160,9 +152,7 @@ describe('GitHub API', () => {
     });
 
     it('should handle invitation response without ID', async () => {
-      mockCheckCollaborator.mockRejectedValueOnce(
-        new Error('Not Found - 404')
-      );
+      mockCheckCollaborator.mockRejectedValueOnce(new Error('Not Found - 404'));
 
       mockAddCollaborator.mockResolvedValueOnce({
         data: {},
@@ -195,9 +185,7 @@ describe('GitHub API', () => {
     });
 
     it('should return false for non-collaborator (404)', async () => {
-      mockCheckCollaborator.mockRejectedValueOnce(
-        new Error('Not Found - 404')
-      );
+      mockCheckCollaborator.mockRejectedValueOnce(new Error('Not Found - 404'));
 
       const githubApi = await import('@/lib/github-api');
       const result = await githubApi.checkIfCollaborator('newuser');
@@ -206,9 +194,7 @@ describe('GitHub API', () => {
     });
 
     it('should return false and log on other errors', async () => {
-      mockCheckCollaborator.mockRejectedValueOnce(
-        new Error('Internal Server Error')
-      );
+      mockCheckCollaborator.mockRejectedValueOnce(new Error('Internal Server Error'));
 
       const githubApi = await import('@/lib/github-api');
       const result = await githubApi.checkIfCollaborator('testuser');
@@ -344,9 +330,7 @@ describe('GitHub API', () => {
     });
 
     it('should throw error on API failure', async () => {
-      mockListCollaborators.mockRejectedValueOnce(
-        new Error('Permission denied')
-      );
+      mockListCollaborators.mockRejectedValueOnce(new Error('Permission denied'));
 
       const githubApi = await import('@/lib/github-api');
       await expect(githubApi.getRepositoryCollaborators()).rejects.toThrow(
@@ -386,9 +370,7 @@ describe('GitHub API', () => {
     });
 
     it('should handle removal errors', async () => {
-      mockRemoveCollaborator.mockRejectedValueOnce(
-        new Error('User not found')
-      );
+      mockRemoveCollaborator.mockRejectedValueOnce(new Error('User not found'));
 
       const githubApi = await import('@/lib/github-api');
       const result = await githubApi.removeFromRepository('nonexistent');

@@ -335,9 +335,11 @@ describe('Retry Queue', () => {
       expect(stats.movedToDLQ).toBe(0);
 
       // Should schedule next retry with updated attempt number
-      const updateCalls = vi.mocked(db.query).mock.calls.filter((call) =>
-        call[0].includes('UPDATE retry_queue') && call[0].includes('SET')
-      );
+      const updateCalls = vi
+        .mocked(db.query)
+        .mock.calls.filter(
+          (call) => call[0].includes('UPDATE retry_queue') && call[0].includes('SET')
+        );
       expect(updateCalls.length).toBeGreaterThan(0); // At least one UPDATE query called
     });
 
@@ -376,9 +378,9 @@ describe('Retry Queue', () => {
       expect(stats.movedToDLQ).toBe(1);
 
       // Should insert into DLQ
-      const dlqCall = vi.mocked(db.query).mock.calls.find((call) =>
-        call[0].includes('INSERT INTO dead_letter_queue')
-      );
+      const dlqCall = vi
+        .mocked(db.query)
+        .mock.calls.find((call) => call[0].includes('INSERT INTO dead_letter_queue'));
       expect(dlqCall).toBeDefined();
     });
 

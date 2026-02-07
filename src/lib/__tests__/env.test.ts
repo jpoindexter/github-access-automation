@@ -111,9 +111,7 @@ describe('Environment Validation', () => {
         expect.stringContaining('Environment Variable Validation Failed')
       );
       // Missing required field shows "Required" in Zod
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Required')
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Required'));
     });
 
     it('should fail when DATABASE_URL has invalid format', async () => {
@@ -135,9 +133,7 @@ describe('Environment Validation', () => {
       const { validateEnv } = await import('@/lib/env');
       validateEnv();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('GITHUB_TOKEN')
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('GITHUB_TOKEN'));
     });
 
     it('should fail when GITHUB_ORG_OR_USER is missing', async () => {
@@ -148,9 +144,7 @@ describe('Environment Validation', () => {
       validateEnv();
 
       // Missing required field shows "Required" in Zod
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Required')
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Required'));
     });
 
     it('should fail when NEXT_PUBLIC_APP_URL is not a valid URL', async () => {
@@ -160,9 +154,7 @@ describe('Environment Validation', () => {
       const { validateEnv } = await import('@/lib/env');
       validateEnv();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('valid URL')
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('valid URL'));
     });
 
     it('should fail when RESEND_FROM_EMAIL is invalid', async () => {
@@ -172,9 +164,7 @@ describe('Environment Validation', () => {
       const { validateEnv } = await import('@/lib/env');
       validateEnv();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('RESEND_FROM_EMAIL')
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('RESEND_FROM_EMAIL'));
     });
 
     it('should throw in production when validation fails', async () => {

@@ -21,6 +21,7 @@ Strategic roadmap for the GitHub Access Automation tool.
 **Mission:** Make selling access to private GitHub repositories as simple as selling any digital product.
 
 **Goals:**
+
 - **Zero friction** for customers (one-click purchase to repo access)
 - **Fully automated** for sellers (no manual invitation management)
 - **Reliable & secure** (enterprise-grade webhook verification and OAuth)
@@ -86,6 +87,7 @@ Strategic roadmap for the GitHub Access Automation tool.
 **Status:** 🔨 In development
 
 **Features:**
+
 - View all customers (paginated table)
 - Filter by status (active, pending, failed, refunded)
 - Search by email, GitHub username, or order ID
@@ -95,12 +97,14 @@ Strategic roadmap for the GitHub Access Automation tool.
 - Export customer data (CSV, JSON)
 
 **Tech stack:**
+
 - Next.js App Router with Server Components
 - TailwindCSS for styling
 - Charts.js for analytics visualization
 - Server Actions for mutations
 
 **Mockup:**
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  GitHub Access Automation - Admin Dashboard        │
@@ -129,6 +133,7 @@ Strategic roadmap for the GitHub Access Automation tool.
 **Status:** 📋 Planned
 
 **Features:**
+
 - Detect `order.refunded` webhook from Polar
 - Automatically remove GitHub repository access
 - Update customer status to "refunded"
@@ -136,6 +141,7 @@ Strategic roadmap for the GitHub Access Automation tool.
 - Log refund reason (if provided)
 
 **Implementation:**
+
 ```typescript
 // src/app/api/webhooks/polar/route.ts
 if (webhook.type === 'order.refunded') {
@@ -154,7 +160,7 @@ if (webhook.type === 'order.refunded') {
   logger.info('Refund processed', {
     orderId: order.id,
     customerId: customer.id,
-    githubUsername: customer.github_username
+    githubUsername: customer.github_username,
   });
 }
 ```
@@ -164,6 +170,7 @@ if (webhook.type === 'order.refunded') {
 **Status:** 📋 Planned
 
 **Features:**
+
 - HTML email templates with branding
 - Plain text fallback for better deliverability
 - Unsubscribe links (compliance)
@@ -175,6 +182,7 @@ if (webhook.type === 'order.refunded') {
   3. Support resources (7 days later)
 
 **Email types:**
+
 - Welcome email (existing)
 - Getting started guide (new)
 - Refund confirmation (new)
@@ -186,6 +194,7 @@ if (webhook.type === 'order.refunded') {
 **Status:** 📋 Planned
 
 **Features:**
+
 - Opt-in checkbox during checkout (already in schema)
 - Sync to email marketing platform:
   - ConvertKit
@@ -200,6 +209,7 @@ if (webhook.type === 'order.refunded') {
 **Status:** 📋 Planned
 
 **Features:**
+
 - Daily/weekly/monthly sales reports
 - Revenue charts (by day, week, month)
 - Conversion funnel tracking:
@@ -212,6 +222,7 @@ if (webhook.type === 'order.refunded') {
 - Export reports as PDF/CSV
 
 **Integrations:**
+
 - PostHog for product analytics
 - Google Analytics for marketing attribution
 - Custom dashboard in admin panel
@@ -227,6 +238,7 @@ if (webhook.type === 'order.refunded') {
 **Status:** 📋 Planned
 
 **Features:**
+
 - Direct Stripe Checkout integration
 - Stripe webhook verification
 - Support for Stripe subscriptions (recurring access)
@@ -234,6 +246,7 @@ if (webhook.type === 'order.refunded') {
 - Customer Portal for subscription management
 
 **Implementation:**
+
 ```typescript
 // src/app/api/webhooks/stripe/route.ts
 import Stripe from 'stripe';
@@ -243,11 +256,7 @@ export async function POST(req: Request) {
   const sig = req.headers.get('stripe-signature')!;
   const body = await req.text();
 
-  const event = stripe.webhooks.constructEvent(
-    body,
-    sig,
-    process.env.STRIPE_WEBHOOK_SECRET!
-  );
+  const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
@@ -272,6 +281,7 @@ export async function POST(req: Request) {
 **Status:** 📋 Planned
 
 **Features:**
+
 - Gumroad webhook support
 - Custom checkout fields for GitHub username
 - Gumroad license key generation (optional)
@@ -282,6 +292,7 @@ export async function POST(req: Request) {
 **Status:** 📋 Planned
 
 **Features:**
+
 - Lemon Squeezy checkout integration
 - Webhook verification
 - Subscription support
@@ -292,12 +303,14 @@ export async function POST(req: Request) {
 **Status:** 📋 Planned
 
 **Features:**
+
 - Unified payment interface
 - Easy switching between providers
 - Support for multiple providers simultaneously (e.g., Stripe + Polar)
 - Configuration via environment variables
 
 **Example:**
+
 ```typescript
 // src/lib/payments/index.ts
 interface PaymentProvider {
@@ -331,6 +344,7 @@ export function getProviderFromRequest(req: Request): PaymentProvider {
 **Status:** 🔮 Future
 
 **Features:**
+
 - Grant access to multiple repositories per purchase
 - Product tiers with different repo access:
   - Basic: Main repo only
@@ -340,19 +354,18 @@ export function getProviderFromRequest(req: Request): PaymentProvider {
 - Conditional access based on product purchased
 
 **Example:**
+
 ```typescript
 // Product tier configuration
 const PRODUCT_TIERS = {
   basic: ['main-repo'],
   pro: ['main-repo', 'examples-repo'],
-  enterprise: ['main-repo', 'examples-repo', 'advanced-repo', 'docs-repo']
+  enterprise: ['main-repo', 'examples-repo', 'advanced-repo', 'docs-repo'],
 };
 
 // Grant access based on tier
 const repos = PRODUCT_TIERS[productTier];
-await Promise.all(
-  repos.map(repo => inviteToRepository(username, 'pull', repo))
-);
+await Promise.all(repos.map((repo) => inviteToRepository(username, 'pull', repo)));
 ```
 
 #### GitLab Support
@@ -360,6 +373,7 @@ await Promise.all(
 **Status:** 🔮 Future
 
 **Features:**
+
 - GitLab OAuth login
 - GitLab API for project invitations
 - Support for self-hosted GitLab instances
@@ -370,6 +384,7 @@ await Promise.all(
 **Status:** 🔮 Future
 
 **Features:**
+
 - Bitbucket OAuth
 - Bitbucket API for repository access
 - Support for Bitbucket Workspaces
@@ -379,6 +394,7 @@ await Promise.all(
 **Status:** 🔮 Future
 
 **Features:**
+
 - Recurring subscriptions (monthly/yearly)
 - Automatic access renewal on successful payment
 - Automatic revocation on failed payment
@@ -387,6 +403,7 @@ await Promise.all(
 - Pro-rated pricing changes
 
 **Webhook handling:**
+
 ```typescript
 // Monthly subscription
 if (event.type === 'subscription.renewed') {
@@ -409,6 +426,7 @@ if (event.type === 'subscription.payment_failed') {
 **Status:** 🔮 Future
 
 **Features:**
+
 - Company purchases for multiple developers
 - Team invitation management
 - Organization-level billing
@@ -418,6 +436,7 @@ if (event.type === 'subscription.payment_failed') {
 
 **Use case:**
 Agency buys "Pro" tier for 5 developers. Agency admin can:
+
 - Invite 5 GitHub usernames to repository
 - Remove/replace team members
 - Upgrade seat count
@@ -428,6 +447,7 @@ Agency buys "Pro" tier for 5 developers. Agency admin can:
 **Status:** 🔮 Future
 
 **Features:**
+
 - Generate license keys for offline validation
 - License expiration dates
 - License activation limits (e.g., max 3 machines)
@@ -442,6 +462,7 @@ Repository includes license validation code that customers add to their projects
 **Status:** 🔮 Future
 
 **Features:**
+
 - Custom branding (logo, colors, emails)
 - Custom domain support
 - Remove "Powered by" branding
@@ -449,6 +470,7 @@ Repository includes license validation code that customers add to their projects
 - Reseller/agency features
 
 **Target audience:**
+
 - Agencies selling boilerplates to clients
 - Course platforms with code distribution
 - Enterprise using internally
@@ -462,6 +484,7 @@ Repository includes license validation code that customers add to their projects
 **Concept:** Hosted platform where sellers can create accounts and manage products without self-hosting.
 
 **Features:**
+
 - Multi-tenant architecture
 - User accounts and authentication
 - Product catalog per seller
@@ -472,6 +495,7 @@ Repository includes license validation code that customers add to their projects
 - Premium support
 
 **Pricing model:**
+
 - Free tier: 0-10 customers/month
 - Starter: $29/month (unlimited customers, 5% transaction fee)
 - Pro: $99/month (unlimited customers, 0% transaction fee)
@@ -482,6 +506,7 @@ Repository includes license validation code that customers add to their projects
 **Concept:** Integrate with existing marketplaces to automate repository access.
 
 **Target platforms:**
+
 - Gumroad product pages
 - ThemeForest downloads
 - Creative Market
@@ -496,6 +521,7 @@ User purchases on marketplace → Marketplace webhook → Automatic repo invite
 **Concept:** Mobile app for sellers to manage customers on-the-go.
 
 **Features:**
+
 - View customer dashboard
 - Approve/deny manual invitations
 - Respond to support requests
@@ -504,6 +530,7 @@ User purchases on marketplace → Marketplace webhook → Automatic repo invite
 - Quick access to logs and errors
 
 **Platforms:**
+
 - iOS (React Native)
 - Android (React Native)
 
@@ -512,6 +539,7 @@ User purchases on marketplace → Marketplace webhook → Automatic repo invite
 **Concept:** Use AI to automate support and improve experience.
 
 **Features:**
+
 - AI chatbot for customer support
 - Automated response to common questions
 - Smart email categorization
@@ -562,6 +590,7 @@ We welcome community contributions! Here's how you can help:
 ### Recognition
 
 Contributors will be:
+
 - Listed in CONTRIBUTORS.md
 - Mentioned in release notes
 - Featured on project website (coming soon)
@@ -621,6 +650,7 @@ We follow Semantic Versioning (semver):
 ### Changelog
 
 All releases documented in [CHANGELOG.md](CHANGELOG.md) with:
+
 - New features
 - Bug fixes
 - Breaking changes
@@ -642,6 +672,7 @@ All releases documented in [CHANGELOG.md](CHANGELOG.md) with:
 ### Long-Term Commitment
 
 This project is actively maintained and will continue to receive:
+
 - Security updates
 - Bug fixes
 - Dependency updates
@@ -650,6 +681,7 @@ This project is actively maintained and will continue to receive:
 ### Funding
 
 Open-source and always free. Optional ways to support:
+
 - GitHub Sponsors (coming soon)
 - Buy me a coffee
 - Contribute code or documentation

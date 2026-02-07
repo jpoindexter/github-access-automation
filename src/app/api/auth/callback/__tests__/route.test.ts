@@ -7,23 +7,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 // Hoisted mocks - these run before any imports
-const {
-  mockAuthenticateWithGitHub,
-  mockValidateState,
-  mockDb,
-  mockAuthLogger,
-} = vi.hoisted(() => ({
-  mockAuthenticateWithGitHub: vi.fn(),
-  mockValidateState: vi.fn(),
-  mockDb: {
-    createOAuthSession: vi.fn(),
-  },
-  mockAuthLogger: {
-    warn: vi.fn(),
-    info: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+const { mockAuthenticateWithGitHub, mockValidateState, mockDb, mockAuthLogger } = vi.hoisted(
+  () => ({
+    mockAuthenticateWithGitHub: vi.fn(),
+    mockValidateState: vi.fn(),
+    mockDb: {
+      createOAuthSession: vi.fn(),
+    },
+    mockAuthLogger: {
+      warn: vi.fn(),
+      info: vi.fn(),
+      error: vi.fn(),
+    },
+  })
+);
 
 // Mock dependencies
 vi.mock('@/lib/github-oauth', () => ({
@@ -69,19 +66,16 @@ describe('OAuth Callback Handler', () => {
     it('should reject requests without authorization code', async () => {
       const { GET } = await import('../route');
 
-      const mockRequest = new NextRequest(
-        'http://localhost/api/auth/callback?state=test123',
-        { method: 'GET' }
-      );
+      const mockRequest = new NextRequest('http://localhost/api/auth/callback?state=test123', {
+        method: 'GET',
+      });
 
       const response = await GET(mockRequest);
       const data = await response.json();
 
       expect(response.status).toBe(400);
       expect(data.error).toBe('Missing authorization code');
-      expect(mockAuthLogger.warn).toHaveBeenCalledWith(
-        'Missing authorization code in callback'
-      );
+      expect(mockAuthLogger.warn).toHaveBeenCalledWith('Missing authorization code in callback');
     });
 
     it('should reject invalid state (CSRF protection)', async () => {
@@ -165,11 +159,7 @@ describe('OAuth Callback Handler', () => {
         username: 'testuser',
       });
 
-      expect(mockDb.createOAuthSession).toHaveBeenCalledWith(
-        'testuser',
-        12345,
-        expect.any(Date)
-      );
+      expect(mockDb.createOAuthSession).toHaveBeenCalledWith('testuser', 12345, expect.any(Date));
     });
 
     it('should set secure cookies with user data', async () => {
@@ -320,9 +310,7 @@ describe('OAuth Callback Handler', () => {
       const { GET } = await import('../route');
 
       mockValidateState.mockReturnValueOnce(true);
-      mockAuthenticateWithGitHub.mockRejectedValueOnce(
-        new Error('GitHub API error')
-      );
+      mockAuthenticateWithGitHub.mockRejectedValueOnce(new Error('GitHub API error'));
 
       const mockRequest = new NextRequest(
         'http://localhost/api/auth/callback?code=test_code&state=valid_state',
@@ -353,9 +341,7 @@ describe('OAuth Callback Handler', () => {
         id: 12345,
         login: 'testuser',
       });
-      mockDb.createOAuthSession.mockRejectedValueOnce(
-        new Error('Database connection failed')
-      );
+      mockDb.createOAuthSession.mockRejectedValueOnce(new Error('Database connection failed'));
 
       const mockRequest = new NextRequest(
         'http://localhost/api/auth/callback?code=test_code&state=valid_state',

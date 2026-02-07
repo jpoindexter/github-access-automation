@@ -55,8 +55,7 @@ const ERROR_PATTERNS: Record<
       '2. Check current limit: https://api.github.com/rate_limit\n' +
       '3. Consider upgrading GitHub token scopes\n' +
       '4. Enable retry queue (automatic recovery)',
-    preventionTip:
-      'Use GitHub Apps (5000 req/hr) instead of Personal Access Tokens (1000 req/hr)',
+    preventionTip: 'Use GitHub Apps (5000 req/hr) instead of Personal Access Tokens (1000 req/hr)',
   },
 
   'not found': {
@@ -71,7 +70,7 @@ const ERROR_PATTERNS: Record<
     preventionTip: 'Validate GitHub usernames before processing payments',
   },
 
-  'forbidden': {
+  forbidden: {
     category: ErrorCategory.GITHUB_API,
     severity: ErrorSeverity.CRITICAL,
     userMessage: 'GitHub API access denied',
@@ -161,7 +160,7 @@ const ERROR_PATTERNS: Record<
   },
 
   // Authentication Errors
-  'unauthorized': {
+  unauthorized: {
     category: ErrorCategory.AUTHENTICATION,
     severity: ErrorSeverity.HIGH,
     userMessage: 'Authentication required',
@@ -293,8 +292,7 @@ export function shouldAlertAdmin(error: Error | string): boolean {
 
   // Alert on critical and high severity errors
   return (
-    categorized.severity === ErrorSeverity.CRITICAL ||
-    categorized.severity === ErrorSeverity.HIGH
+    categorized.severity === ErrorSeverity.CRITICAL || categorized.severity === ErrorSeverity.HIGH
   );
 }
 

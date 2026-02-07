@@ -24,9 +24,7 @@ const sslConfig = databaseUrl.startsWith('postgres')
   : false;
 
 if (isProduction && !isNeonDatabase && skipSslVerification) {
-  dbLogger.warn(
-    'SSL certificate verification is disabled in production. This is a security risk!'
-  );
+  dbLogger.warn('SSL certificate verification is disabled in production. This is a security risk!');
 }
 
 const pool = new Pool({
@@ -187,10 +185,7 @@ export const db = {
   /**
    * Record chargeback
    */
-  async recordChargeback(
-    customerId: string,
-    reason?: string
-  ): Promise<Customer> {
+  async recordChargeback(customerId: string, reason?: string): Promise<Customer> {
     const query = `
       UPDATE customers
       SET
@@ -290,11 +285,7 @@ export const db = {
       RETURNING *;
     `;
 
-    const result = await pool.query(query, [
-      githubUsername,
-      githubUserId,
-      expiresAt,
-    ]);
+    const result = await pool.query(query, [githubUsername, githubUserId, expiresAt]);
 
     return result.rows[0] as OAuthSession;
   },

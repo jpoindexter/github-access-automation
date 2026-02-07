@@ -41,7 +41,7 @@ export function CustomersTable({ customers }: CustomersTableProps) {
         const data = await response.json();
         alert(`Retry failed: ${data.error}`);
       }
-    } catch (error) {
+    } catch {
       alert('Retry failed. Please check logs.');
     } finally {
       setRetryingId(null);
@@ -99,18 +99,13 @@ export function CustomersTable({ customers }: CustomersTableProps) {
                   <td className="px-6 py-4 text-sm">{customer.email}</td>
                   <td className="px-6 py-4 text-sm">{customer.github_username || '—'}</td>
                   <td className="px-6 py-4">
-                    <StatusBadge
-                      status={customer.status}
-                      error={customer.invitation_error}
-                    />
+                    <StatusBadge status={customer.status} error={customer.invitation_error} />
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {new Date(customer.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {customer.amount_paid
-                      ? `$${(customer.amount_paid / 100).toFixed(2)}`
-                      : '—'}
+                    {customer.amount_paid ? `$${(customer.amount_paid / 100).toFixed(2)}` : '—'}
                   </td>
                   <td className="px-6 py-4">
                     {customer.invitation_error && (
@@ -152,9 +147,7 @@ function StatusBadge({ status, error }: { status: string; error?: string | null 
   const color = colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
 
   return (
-    <span
-      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${color}`}
-    >
+    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${color}`}>
       {status}
     </span>
   );

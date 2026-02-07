@@ -296,12 +296,7 @@ export async function processRetryQueue(): Promise<{
       // Check if we should retry again or move to DLQ
       if (classification.type === 'permanent' || nextAttempt >= MAX_ATTEMPTS) {
         // Move to dead letter queue
-        await moveToDLQ(
-          item.customer_id,
-          classification.message,
-          nextAttempt,
-          classification.type
-        );
+        await moveToDLQ(item.customer_id, classification.message, nextAttempt, classification.type);
 
         await db.query(
           `
@@ -316,8 +311,7 @@ export async function processRetryQueue(): Promise<{
 
         retryLogger.warn('Moved to DLQ', {
           customerId: item.customer_id,
-          reason:
-            classification.type === 'permanent' ? 'permanent error' : 'max attempts exceeded',
+          reason: classification.type === 'permanent' ? 'permanent error' : 'max attempts exceeded',
         });
       } else {
         // Schedule next retry

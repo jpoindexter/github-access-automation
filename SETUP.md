@@ -51,6 +51,7 @@ All fields documented in README.md → Database Schema section.
 ## 3. API Endpoints
 
 ### GitHub OAuth Flow
+
 ```
 GET /api/auth/github
   → Redirects to GitHub OAuth authorization
@@ -62,6 +63,7 @@ GET /api/auth/callback
 ```
 
 ### Polar Webhook
+
 ```
 POST /api/webhooks/polar
   → Receives payment notification
@@ -71,6 +73,7 @@ POST /api/webhooks/polar
 ```
 
 ### Customer Management
+
 ```
 GET /api/customers
   → List all customers (with pagination)
@@ -109,6 +112,7 @@ POST /api/customers/:id/chargeback
 Customers will be added as **read-only collaborators** (permission: `pull`).
 
 They can:
+
 - ✅ Clone the repo
 - ✅ Pull the code
 - ❌ Cannot push changes
@@ -168,17 +172,20 @@ Visit `http://localhost:3000` to test the flow.
 ## 9. Monitoring
 
 ### Check customer status
+
 ```bash
 psql $DATABASE_URL
 SELECT * FROM customers WHERE status = 'pending';
 ```
 
 ### View webhook logs
+
 ```bash
 # Logs in src/app/api/webhooks/polar/route.ts
 ```
 
 ### Check for failed invitations
+
 ```bash
 SELECT * FROM customers WHERE invitation_error IS NOT NULL;
 ```
@@ -186,16 +193,19 @@ SELECT * FROM customers WHERE invitation_error IS NOT NULL;
 ## 10. Troubleshooting
 
 **Issue: GitHub invitation fails**
+
 - Check `invitation_error` field in database
 - Verify `GITHUB_TOKEN` has `repo` scope
 - Verify user isn't already a collaborator
 
 **Issue: Webhook not firing**
+
 - Check Polar webhook settings
 - Verify `POLAR_WEBHOOK_SECRET` is correct
 - Check server logs for errors
 
 **Issue: Customer email not working**
+
 - Verify `RESEND_API_KEY` is valid
 - Check `RESEND_FROM_EMAIL` is verified in Resend
 

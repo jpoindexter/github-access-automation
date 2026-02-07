@@ -33,9 +33,7 @@ describe('Logger', () => {
 
       logger.debug('Debug message');
 
-      expect(consoleDebugSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Debug message')
-      );
+      expect(consoleDebugSpy).toHaveBeenCalledWith(expect.stringContaining('Debug message'));
     });
 
     it('should not log debug messages in production', async () => {
@@ -55,9 +53,7 @@ describe('Logger', () => {
 
       logger.debug('Debug with context', { userId: '123', action: 'test' });
 
-      expect(consoleDebugSpy).toHaveBeenCalledWith(
-        expect.stringContaining('userId')
-      );
+      expect(consoleDebugSpy).toHaveBeenCalledWith(expect.stringContaining('userId'));
     });
   });
 
@@ -67,9 +63,7 @@ describe('Logger', () => {
 
       logger.info('Info message');
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Info message')
-      );
+      expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining('Info message'));
     });
 
     it('should include context in info logs', async () => {
@@ -77,9 +71,7 @@ describe('Logger', () => {
 
       logger.info('Request received', { method: 'POST', path: '/api/test' });
 
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Request received')
-      );
+      expect(consoleInfoSpy).toHaveBeenCalledWith(expect.stringContaining('Request received'));
     });
   });
 
@@ -89,9 +81,7 @@ describe('Logger', () => {
 
       logger.warn('Warning message');
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Warning message')
-      );
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Warning message'));
     });
   });
 
@@ -101,9 +91,7 @@ describe('Logger', () => {
 
       logger.error('Error occurred');
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error occurred')
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Error occurred'));
     });
 
     it('should include Error object details', async () => {
@@ -274,7 +262,10 @@ describe('Logger', () => {
       const { logger } = await import('@/lib/logger');
 
       logger.info('Array data', {
-        users: [{ name: 'John', password: 'secret1' }, { name: 'Jane', token: 'secret2' }],
+        users: [
+          { name: 'John', password: 'secret1' },
+          { name: 'Jane', token: 'secret2' },
+        ],
       });
 
       const logOutput = consoleInfoSpy.mock.calls[0][0];
@@ -348,7 +339,7 @@ describe('Logger', () => {
       // Short strings (< 20 chars) should NOT be redacted even if they look like token prefixes
       logger.info('Short strings', {
         field1: 'ghp_short', // < 20 chars
-        field2: 'sk_test',   // < 20 chars
+        field2: 'sk_test', // < 20 chars
       });
 
       const logOutput = consoleInfoSpy.mock.calls[0][0];

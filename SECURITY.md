@@ -35,6 +35,7 @@ Your GitHub Account (Owner)
   - No accidental public exposure
 
 - [ ] **Branch Protection: ENABLED on main**
+
   ```bash
   # Verify with:
   gh api repos/OWNER/REPO/branches/main/protection
@@ -60,17 +61,17 @@ Your GitHub Account (Owner)
 
 When a customer is invited with `permission: 'pull'`:
 
-| Action | Allowed? | Why |
-|--------|----------|-----|
-| Clone repo | ✅ YES | They need the code |
-| Pull updates | ✅ YES | They need latest version |
-| View code | ✅ YES | They own a license |
-| Create local branches | ✅ YES | On their machine only |
-| Push to main | ❌ NO | Branch protection blocks |
-| Create pull requests | ❌ NO | No write permission |
-| Delete branches | ❌ NO | Read-only access |
-| Modify issues/PRs | ❌ NO | No write permission |
-| Access Settings | ❌ NO | No admin access |
+| Action                | Allowed? | Why                      |
+| --------------------- | -------- | ------------------------ |
+| Clone repo            | ✅ YES   | They need the code       |
+| Pull updates          | ✅ YES   | They need latest version |
+| View code             | ✅ YES   | They own a license       |
+| Create local branches | ✅ YES   | On their machine only    |
+| Push to main          | ❌ NO    | Branch protection blocks |
+| Create pull requests  | ❌ NO    | No write permission      |
+| Delete branches       | ❌ NO    | Read-only access         |
+| Modify issues/PRs     | ❌ NO    | No write permission      |
+| Access Settings       | ❌ NO    | No admin access          |
 
 ---
 
@@ -81,6 +82,7 @@ When a customer is invited with `permission: 'pull'`:
 Every webhook from Polar is HMAC-SHA256 signed with your webhook secret.
 
 **Verification Flow:**
+
 ```
 Polar sends: {payload} + X-Polar-Signature header
 ↓
@@ -109,23 +111,25 @@ Result: Accept webhook OR reject with 401
 
 ### What Each Variable Controls
 
-| Variable | Impact | Risk Level |
-|----------|--------|-----------|
-| `GITHUB_TOKEN` | Can add collaborators to your repo | 🔴 CRITICAL |
-| `POLAR_WEBHOOK_SECRET` | Validates webhook authenticity | 🔴 CRITICAL |
-| `DATABASE_URL` | Access to all customer data | 🔴 CRITICAL |
-| `RESEND_API_KEY` | Can send emails as you | 🟡 HIGH |
-| `GITHUB_OAUTH_CLIENT_SECRET` | OAuth identity verification | 🟡 HIGH |
+| Variable                     | Impact                             | Risk Level  |
+| ---------------------------- | ---------------------------------- | ----------- |
+| `GITHUB_TOKEN`               | Can add collaborators to your repo | 🔴 CRITICAL |
+| `POLAR_WEBHOOK_SECRET`       | Validates webhook authenticity     | 🔴 CRITICAL |
+| `DATABASE_URL`               | Access to all customer data        | 🔴 CRITICAL |
+| `RESEND_API_KEY`             | Can send emails as you             | 🟡 HIGH     |
+| `GITHUB_OAUTH_CLIENT_SECRET` | OAuth identity verification        | 🟡 HIGH     |
 
 ### Best Practices
 
 **NEVER:**
+
 - ❌ Commit `.env.local` to git
 - ❌ Log environment variables
 - ❌ Share variables in Slack/email
 - ❌ Use same variables across environments
 
 **DO:**
+
 - ✅ Use `.env.example` as template
 - ✅ Store secrets in production environment manager (Vercel/Railway)
 - ✅ Rotate secrets regularly
@@ -157,11 +161,13 @@ customers table
 ### Access Control
 
 Only the backend can access:
+
 - ✅ Neon database (via CONNECTION_URL)
 - ✅ Polar webhooks (via WEBHOOK_SECRET)
 - ✅ GitHub API (via GITHUB_TOKEN)
 
 Frontend cannot:
+
 - ❌ Query database directly
 - ❌ Access payment details
 - ❌ See other customers' data
@@ -268,6 +274,7 @@ NODE_ENV=production
 ```
 
 **NEVER:**
+
 - Store secrets in code
 - Use same tokens across environments
 - Log secrets to stdout
@@ -280,6 +287,7 @@ NODE_ENV=production
 ### If Webhook Secret is Compromised
 
 1. **Immediately:**
+
    ```bash
    # Stop the service temporarily
    Disable webhook endpoint OR rotate secret
@@ -290,6 +298,7 @@ NODE_ENV=production
    - Update your `.env` with new secret
 
 3. **Verify:**
+
    ```bash
    # Test new secret works
    npm run test -- webhook.test.ts
@@ -348,10 +357,12 @@ NODE_ENV=production
 ### GDPR Compliance
 
 We collect and store personal data:
+
 - Name, email, company (from Polar)
 - GitHub username and ID (from GitHub)
 
 **Your obligations:**
+
 - ✅ Privacy policy discloses what data you collect
 - ✅ Data is only used for GitHub invitations
 - ✅ Data is not sold or shared
@@ -361,11 +372,13 @@ We collect and store personal data:
 ### License Enforcement
 
 Each customer's access is tied to:
+
 - GitHub account (username/ID)
 - Polar order (order_id)
 - Our database record (customer_id)
 
 **You can:**
+
 - ✅ Remove them from the repo if they refund/chargeback
 - ✅ Track who has access via database
 - ✅ Audit GitHub collaborators anytime
@@ -376,6 +389,7 @@ Each customer's access is tied to:
 ## Security Checklist
 
 **Before Deploying:**
+
 - [ ] Repository is PRIVATE
 - [ ] Branch protection enabled on main
 - [ ] Webhook signature verification implemented
@@ -388,6 +402,7 @@ Each customer's access is tied to:
 - [ ] Tested webhook flow with Polar sandbox
 
 **After Deploying:**
+
 - [ ] Monitor logs for errors
 - [ ] Verify first few webhooks succeed
 - [ ] Test GitHub invitation with test customer
@@ -400,12 +415,14 @@ Each customer's access is tied to:
 ## Getting Help
 
 **If something seems insecure:**
+
 1. Check this guide
 2. Review code in `src/lib/`
 3. Enable debug logging
 4. Contact support with full error message
 
 **Red Flags:**
+
 - ❌ Webhook signature mismatch (401 errors)
 - ❌ GitHub invitation failures
 - ❌ Database connection errors
