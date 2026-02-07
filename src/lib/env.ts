@@ -37,7 +37,7 @@ const envSchema = z.object({
       '❌ GITHUB_ORG_OR_USER is required.\n' +
       'Expected: Your GitHub username or organization name\n' +
       'Example: "octocat" or "github"\n' +
-      "Where to find: Your GitHub profile URL (github.com/YOUR-USERNAME)",
+      'Where to find: Your GitHub profile URL (github.com/YOUR-USERNAME)',
   }),
 
   GITHUB_REPO: z.string().min(1, {
@@ -152,16 +152,14 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
   // Admin Authentication
-  ADMIN_PASSWORD: z
-    .string()
-    .min(12, {
-      message:
-        '❌ ADMIN_PASSWORD is too short.\n' +
-        'Expected: At least 12 characters for security\n' +
-        'Recommendation: Use a strong password with mixed characters\n' +
-        'Purpose: Protects access to admin panel\n' +
-        'Security: Never commit this to git or share publicly',
-    }),
+  ADMIN_PASSWORD: z.string().min(12, {
+    message:
+      '❌ ADMIN_PASSWORD is too short.\n' +
+      'Expected: At least 12 characters for security\n' +
+      'Recommendation: Use a strong password with mixed characters\n' +
+      'Purpose: Protects access to admin panel\n' +
+      'Security: Never commit this to git or share publicly',
+  }),
 
   // Optional
   POLAR_ACCESS_TOKEN: z.string().optional(),
@@ -202,8 +200,12 @@ export function validateEnv(): Env {
 /**
  * Validated environment variables
  * Use this instead of process.env for type-safe access
+ * Skips validation during Next.js build phase (env vars aren't needed at build time)
  */
-export const env = validateEnv();
+export const env =
+  process.env.NEXT_PHASE === 'phase-production-build'
+    ? (process.env as unknown as Env)
+    : validateEnv();
 
 /**
  * Check if running in production

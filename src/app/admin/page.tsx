@@ -7,15 +7,15 @@ import { db } from '@/lib/db';
 import { CustomersTable } from '@/components/admin/customers-table';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminDashboard() {
   const customers = await db.getAllCustomers();
 
   // Calculate simple stats
   const stats = {
     total: customers.length,
-    invited: customers.filter(
-      (c) => c.status === 'invited' || c.status === 'active'
-    ).length,
+    invited: customers.filter((c) => c.status === 'invited' || c.status === 'active').length,
     pending: customers.filter((c) => c.status === 'pending').length,
     failed: customers.filter((c) => c.invitation_error).length,
   };

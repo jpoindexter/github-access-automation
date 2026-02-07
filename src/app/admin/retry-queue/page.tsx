@@ -7,6 +7,8 @@ import { db } from '@/lib/db';
 import { getRetryQueueStats } from '@/lib/retry-queue';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default async function RetryQueuePage() {
   // Get stats
   const stats = await getRetryQueueStats();
@@ -56,10 +58,7 @@ export default async function RetryQueuePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Retry Queue</h1>
-        <Link
-          href="/admin"
-          className="text-sm text-gray-600 hover:text-gray-900"
-        >
+        <Link href="/admin" className="text-sm text-gray-600 hover:text-gray-900">
           ← Back to Dashboard
         </Link>
       </div>
@@ -77,15 +76,11 @@ export default async function RetryQueuePage() {
       <div className="rounded-lg bg-white shadow">
         <div className="border-b px-6 py-4">
           <h2 className="text-xl font-semibold">Pending Retries</h2>
-          <p className="text-sm text-gray-600">
-            Items waiting for next retry attempt
-          </p>
+          <p className="text-sm text-gray-600">Items waiting for next retry attempt</p>
         </div>
 
         {retryQueue.length === 0 ? (
-          <div className="px-6 py-12 text-center text-gray-500">
-            No pending retries
-          </div>
+          <div className="px-6 py-12 text-center text-gray-500">No pending retries</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -145,9 +140,7 @@ export default async function RetryQueuePage() {
         </div>
 
         {dlqItems.length === 0 ? (
-          <div className="px-6 py-12 text-center text-gray-500">
-            No items in dead letter queue
-          </div>
+          <div className="px-6 py-12 text-center text-gray-500">No items in dead letter queue</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
