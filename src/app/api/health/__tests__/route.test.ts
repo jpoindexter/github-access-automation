@@ -98,7 +98,10 @@ describe('Health Check Handler', () => {
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
-      } as Response);
+        json: vi.fn().mockResolvedValue({
+          rate: { limit: 5000, remaining: 4999, reset: Math.floor(Date.now() / 1000) + 3600 },
+        }),
+      } as never);
 
       const mockRequest = new NextRequest('http://localhost/api/health', {
         method: 'GET',
@@ -109,8 +112,8 @@ describe('Health Check Handler', () => {
 
       expect(response.status).toBe(200);
       expect(data.status).toBe('degraded');
-      expect(data.services.database).toBe(false);
-      expect(data.services.github).toBe(true);
+      expect(data.services.database.healthy).toBe(false);
+      expect(data.services.github.healthy).toBe(true);
       expect(logger.error).toHaveBeenCalledWith('Database health check failed', expect.any(Error));
     });
 
@@ -139,8 +142,8 @@ describe('Health Check Handler', () => {
 
       expect(response.status).toBe(200);
       expect(data.status).toBe('degraded');
-      expect(data.services.database).toBe(true);
-      expect(data.services.github).toBe(false);
+      expect(data.services.database.healthy).toBe(true);
+      expect(data.services.github.healthy).toBe(false);
     });
 
     it('should return unhealthy status when all services are down', async () => {
@@ -162,8 +165,8 @@ describe('Health Check Handler', () => {
 
       expect(response.status).toBe(503);
       expect(data.status).toBe('unhealthy');
-      expect(data.services.database).toBe(false);
-      expect(data.services.github).toBe(false);
+      expect(data.services.database.healthy).toBe(false);
+      expect(data.services.github.healthy).toBe(false);
     });
 
     it('should include process uptime', async () => {
@@ -238,7 +241,7 @@ describe('Health Check Handler', () => {
       expect(db.query).toHaveBeenCalledWith('SELECT 1');
     });
 
-    it('should check GitHub zen endpoint', async () => {
+    it('should check GitHub rate_limit endpoint', async () => {
       const { db } = await import('@/lib/db');
       const { GET } = await import('../route');
 
@@ -250,7 +253,10 @@ describe('Health Check Handler', () => {
       vi.mocked(fetch).mockResolvedValueOnce({
         ok: true,
         status: 200,
-      } as Response);
+        json: vi.fn().mockResolvedValue({
+          rate: { limit: 5000, remaining: 4999, reset: Math.floor(Date.now() / 1000) + 3600 },
+        }),
+      } as never);
 
       const mockRequest = new NextRequest('http://localhost/api/health', {
         method: 'GET',
@@ -259,12 +265,12 @@ describe('Health Check Handler', () => {
       await GET(mockRequest);
 
       expect(fetch).toHaveBeenCalledWith(
-        'https://api.github.com/zen',
+        'https://api.github.com/rate_limit',
         expect.objectContaining({
-          headers: {
+          headers: expect.objectContaining({
             'User-Agent': 'github-access-automation',
             Accept: 'application/vnd.github.v3+json',
-          },
+          }),
         })
       );
     });
@@ -288,7 +294,7 @@ describe('Health Check Handler', () => {
       const response = await GET(mockRequest);
       const data = await response.json();
 
-      expect(data.services.github).toBe(false);
+      expect(data.services.github.healthy).toBe(false);
       expect(logger.error).toHaveBeenCalledWith('GitHub health check failed', expect.any(Error));
     });
 
@@ -376,8 +382,8 @@ describe('Health Check Handler', () => {
 
       expect(response.status).toBe(200);
       expect(data.status).toBe('degraded');
-      expect(data.services.database).toBe(true);
-      expect(data.services.github).toBe(false);
+      expect(data.services.database.healthy).toBe(true);
+      expect(data.services.github.healthy).toBe(false);
     });
 
     it('should return consistent response structure', async () => {
