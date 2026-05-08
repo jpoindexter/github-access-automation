@@ -34,6 +34,9 @@ const {
     createCustomer: vi.fn(),
     updateCustomerStatus: vi.fn(),
     markWelcomeEmailSent: vi.fn(),
+    query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+    getOAuthSession: vi.fn().mockResolvedValue(null),
+    deleteOAuthSession: vi.fn().mockResolvedValue(undefined),
   },
   mockWebhookLogger: {
     warn: vi.fn(),

@@ -17,6 +17,7 @@ const VALID_TEST_ENV = {
   NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
   NODE_ENV: 'development',
   ADMIN_PASSWORD: 'a'.repeat(12), // 12+ chars minimum
+  CRON_SECRET: 'c'.repeat(32), // 32+ chars, now required
 };
 
 describe('Environment Validation', () => {

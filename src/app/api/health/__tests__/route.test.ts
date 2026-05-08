@@ -6,6 +6,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// Mock next/headers so cookies() returns an admin session
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(async () => ({
+    get: (name: string) => (name === 'admin_session' ? { value: 'authenticated' } : undefined),
+  })),
+}));
+
 // Mock dependencies
 vi.mock('@/lib/db', () => ({
   db: {
