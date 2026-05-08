@@ -11,6 +11,7 @@
  * Security: Requires CRON_SECRET header to prevent unauthorized access
  */
 
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { processRetryQueue } from '@/lib/retry-queue';
 import { retryLogger } from '@/lib/logger';
@@ -19,9 +20,19 @@ export async function POST(request: NextRequest) {
   try {
     // Verify cron secret to prevent unauthorized access
     const cronSecret = request.headers.get('x-cron-secret');
-    const expectedSecret = process.env.CRON_SECRET || 'dev-secret';
+    const expectedSecret = process.env.CRON_SECRET;
 
-    if (cronSecret !== expectedSecret) {
+    if (!expectedSecret) {
+      retryLogger.error('CRON_SECRET environment variable is not configured');
+      return NextResponse.json({ error: 'Service misconfigured' }, { status: 500 });
+    }
+
+    const secretsMatch =
+      typeof cronSecret === 'string' &&
+      cronSecret.length === expectedSecret.length &&
+      timingSafeEqual(Buffer.from(cronSecret), Buffer.from(expectedSecret));
+
+    if (!secretsMatch) {
       retryLogger.warn('Unauthorized cron job attempt', {
         ip: request.headers.get('x-forwarded-for') || 'unknown',
       });

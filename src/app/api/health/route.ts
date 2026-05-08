@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { getRetryQueueStats } from '@/lib/retry-queue';
@@ -43,6 +44,10 @@ interface HealthCheckResponse {
 }
 
 export async function GET(_request: NextRequest) {
+  const cookieStore = await cookies();
+  const adminSession = cookieStore.get('admin_session');
+  const isAdmin = adminSession?.value === 'authenticated';
+
   const checks: HealthCheckResponse = {
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -145,6 +150,13 @@ export async function GET(_request: NextRequest) {
     checks.status = 'degraded';
   } else {
     checks.status = 'unhealthy';
+  }
+
+  if (!isAdmin) {
+    return NextResponse.json(
+      { status: checks.status, timestamp: checks.timestamp },
+      { status: checks.status === 'unhealthy' ? 503 : 200 }
+    );
   }
 
   return NextResponse.json(checks, {

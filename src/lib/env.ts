@@ -163,16 +163,12 @@ const envSchema = z.object({
 
   // Optional
   POLAR_ACCESS_TOKEN: z.string().optional(),
-  CRON_SECRET: z
-    .string()
-    .min(16, {
-      message:
-        '❌ CRON_SECRET is too short.\n' +
-        'Expected: At least 16 characters for security\n' +
-        'Purpose: Protects cron job endpoints from unauthorized access\n' +
-        'Example: Generate with: openssl rand -hex 32',
-    })
-    .optional(),
+  CRON_SECRET: z.string().min(32, {
+    message:
+      '❌ CRON_SECRET is required and must be at least 32 characters.\n' +
+      'Generate with: openssl rand -hex 32\n' +
+      'Purpose: Protects cron job endpoints from unauthorized access',
+  }),
 });
 
 export type Env = z.infer<typeof envSchema>;

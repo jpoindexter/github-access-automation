@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     // Store user info in database oauth_sessions for linking later
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minute expiry
-    await db.createOAuthSession(user.login, user.id, expiresAt);
+    const oauthSession = await db.createOAuthSession(user.login, user.id, expiresAt);
 
     // Build secure redirect URL to Polar checkout
     // Using environment variable with fallback to production Polar URL
@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
     // Using shorter keys to avoid conflict with potentially deleted fields in Polar
     redirectUrl.searchParams.set('gh_username', user.login);
     redirectUrl.searchParams.set('gh_user_id', user.id.toString());
+    redirectUrl.searchParams.set('session_id', oauthSession.id);
 
     authLogger.info('Redirecting to Polar checkout', { url: redirectUrl.toString() });
 

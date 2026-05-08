@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    // Parse webhook payload
+    // Parse webhook payload — signature verified above
     const webhook = parsePolarWebhook(body);
 
     // Validate timestamp to prevent replay attacks
@@ -68,6 +68,16 @@ export async function POST(request: NextRequest) {
     }
 
     const order = webhook.data;
+
+    // Check for duplicate webhook delivery (idempotency guard)
+    const existingByOrder = await db.query(
+      'SELECT id FROM customers WHERE polar_order_id = $1 LIMIT 1',
+      [order.id]
+    );
+    if (existingByOrder.rows.length > 0) {
+      webhookLogger.info('Duplicate webhook - order already processed', { orderId: order.id });
+      return NextResponse.json({ success: true, deduplicated: true });
+    }
 
     // Extract customer data from webhook
     const customerData = extractCustomerDataFromWebhook(order);
@@ -98,8 +108,37 @@ export async function POST(request: NextRequest) {
       metadata.gh_user_id ||
       metadata.github_user_id) as string | undefined;
 
+    // Resolve verified GitHub username from OAuth session (identity binding)
+    const sessionId = (customFieldData.session_id || metadata.session_id) as string | undefined;
+    let verifiedUsername: string | undefined;
+    if (sessionId) {
+      try {
+        const oauthSession = await db.getOAuthSession(sessionId);
+        if (oauthSession && new Date(oauthSession.expires_at) > new Date()) {
+          verifiedUsername = oauthSession.github_username;
+          await db.deleteOAuthSession(sessionId); // consume — one-time use
+        } else {
+          webhookLogger.warn('OAuth session expired or not found', {
+            sessionId,
+            orderId: order.id,
+          });
+        }
+      } catch (err) {
+        webhookLogger.error('Failed to look up OAuth session', err);
+      }
+    }
+
+    // Use server-verified username if available; fall back with warning
+    const resolvedGithubUsername = verifiedUsername ?? githubUsername;
+    if (!verifiedUsername && githubUsername) {
+      webhookLogger.warn(
+        'Using unverified GitHub username from checkout field — no valid OAuth session',
+        { orderId: order.id, githubUsername }
+      );
+    }
+
     // Only Username is strictly required for invitation
-    if (!githubUsername) {
+    if (!resolvedGithubUsername) {
       webhookLogger.error('Missing GitHub username in webhook metadata', undefined, {
         orderId: order.id,
         hasMetadata: !!metadata || !!customFieldData ? 'yes' : 'no',
@@ -119,13 +158,13 @@ export async function POST(request: NextRequest) {
     // ...
     // Create customer in database
     const customer = await db.createCustomer({
-      name: customerData.name || githubUsername,
+      name: customerData.name || resolvedGithubUsername,
       email: customerData.email,
       company: customerData.company,
       use_case: customerData.useCase,
       referral_source: customerData.referralSource,
       newsletter_opted_in: customerData.newsletterOptedIn ?? false,
-      github_username: githubUsername,
+      github_username: resolvedGithubUsername,
       github_email: customerData.email, // Use customer email for github_email
       github_user_id: parseInt(githubUserId || '0', 10), // Ensure it's a number, default to 0
       polar_order_id: order.id,
@@ -143,13 +182,13 @@ export async function POST(request: NextRequest) {
     webhookLogger.info('Created customer', { customerId: customer.id, orderId: order.id });
 
     // Invite to GitHub repository
-    const inviteResult = await inviteToRepository(githubUsername, 'pull');
+    const inviteResult = await inviteToRepository(resolvedGithubUsername, 'pull');
 
     if (!inviteResult.success) {
       await db.updateCustomerStatus(customer.id, 'invited_failed', new Date(), inviteResult.error);
 
       webhookLogger.error('Failed to invite user to repository', undefined, {
-        username: githubUsername,
+        username: resolvedGithubUsername,
         customerId: customer.id,
         error: inviteResult.error,
       });
@@ -157,7 +196,7 @@ export async function POST(request: NextRequest) {
       await sendErrorNotification(
         'GitHub Invitation Failed',
         inviteResult.error || 'Unknown error',
-        { customerId: customer.id, username: githubUsername }
+        { customerId: customer.id, username: resolvedGithubUsername }
       );
 
       return NextResponse.json({ error: 'Failed to invite to repository' }, { status: 500 });

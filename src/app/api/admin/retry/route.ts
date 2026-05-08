@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { inviteToRepository, getRepositoryCloneUrl } from '@/lib/github-api';
 import { sendWelcomeEmail } from '@/lib/email';
@@ -12,6 +13,13 @@ import { authLogger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get('admin_session');
+    if (!session || session.value !== 'authenticated') {
+      authLogger.warn('Unauthenticated admin retry attempt');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { customerId } = await request.json();
 
     if (!customerId) {
