@@ -7,8 +7,12 @@ import { Resend } from 'resend';
 import { emailLogger } from '@/lib/logger';
 import { env } from '@/lib/env';
 
-const resend = new Resend(env.RESEND_API_KEY);
 const FROM_EMAIL = env.RESEND_FROM_EMAIL || 'noreply@example.com';
+
+function getResend(): Resend {
+  if (!env.RESEND_API_KEY) throw new Error('RESEND_API_KEY is not configured');
+  return new Resend(env.RESEND_API_KEY);
+}
 
 export interface SendEmailOptions {
   to: string;
@@ -26,7 +30,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{
   error?: string;
 }> {
   try {
-    const result = await resend.emails.send({
+    const result = await getResend().emails.send({
       from: FROM_EMAIL,
       to: options.to,
       subject: options.subject,
