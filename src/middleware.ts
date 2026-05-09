@@ -21,14 +21,11 @@ const RATE_LIMIT_CONFIG = {
  * Get client IP address from request
  */
 function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) {
-    const firstIp = forwarded.split(',')[0];
-    return firstIp?.trim() ?? '127.0.0.1';
-  }
-  const realIp = request.headers.get('x-real-ip');
-  if (realIp) {
-    return realIp;
+  // x-vercel-forwarded-for is set by Vercel's edge network and cannot be spoofed
+  // by clients — unlike x-forwarded-for which is a client-controlled header.
+  const vercelIp = request.headers.get('x-vercel-forwarded-for');
+  if (vercelIp) {
+    return vercelIp.split(',')[0]?.trim() ?? '127.0.0.1';
   }
   return '127.0.0.1';
 }

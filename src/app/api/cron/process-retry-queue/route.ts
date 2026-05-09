@@ -16,10 +16,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { processRetryQueue } from '@/lib/retry-queue';
 import { retryLogger } from '@/lib/logger';
 
+function verifyCronSecret(request: NextRequest): boolean {
+  const expectedSecret = process.env.CRON_SECRET;
+  if (!expectedSecret) return false;
+
+  const authHeader = request.headers.get('authorization');
+  if (!authHeader) return false;
+
+  const provided = authHeader.replace(/^Bearer\s+/, '');
+  if (provided.length === 0) return false;
+
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expectedSecret);
+  const maxLen = Math.max(a.length, b.length);
+  const aBuf = Buffer.alloc(maxLen);
+  const bBuf = Buffer.alloc(maxLen);
+  a.copy(aBuf);
+  b.copy(bBuf);
+  return timingSafeEqual(aBuf, bBuf) && a.length === b.length;
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Verify cron secret to prevent unauthorized access
-    const cronSecret = request.headers.get('x-cron-secret');
     const expectedSecret = process.env.CRON_SECRET;
 
     if (!expectedSecret) {
@@ -27,14 +46,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Service misconfigured' }, { status: 500 });
     }
 
-    const secretsMatch =
-      typeof cronSecret === 'string' &&
-      cronSecret.length === expectedSecret.length &&
-      timingSafeEqual(Buffer.from(cronSecret), Buffer.from(expectedSecret));
-
-    if (!secretsMatch) {
+    if (!verifyCronSecret(request)) {
       retryLogger.warn('Unauthorized cron job attempt', {
-        ip: request.headers.get('x-forwarded-for') || 'unknown',
+        ip: request.headers.get('x-vercel-forwarded-for') || 'unknown',
       });
 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -65,8 +79,22 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Allow GET for health checks
-export async function GET() {
+// GET is authenticated — same cron secret required
+export async function GET(request: NextRequest) {
+  const expectedSecret = process.env.CRON_SECRET;
+
+  if (!expectedSecret) {
+    retryLogger.error('CRON_SECRET environment variable is not configured');
+    return NextResponse.json({ error: 'Service misconfigured' }, { status: 500 });
+  }
+
+  if (!verifyCronSecret(request)) {
+    retryLogger.warn('Unauthorized GET to retry-queue-processor', {
+      ip: request.headers.get('x-vercel-forwarded-for') || 'unknown',
+    });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   return NextResponse.json({
     service: 'retry-queue-processor',
     status: 'healthy',

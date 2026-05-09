@@ -81,19 +81,11 @@ export async function POST(request: NextRequest) {
 
     // Extract customer data from webhook
     const customerData = extractCustomerDataFromWebhook(order);
-    webhookLogger.info('DEBUG: Customer Email for creation', { email: customerData.email });
 
     // Get GitHub username from webhook metadata or custom_field_data
     // Polar puts "Checkout Fields" into custom_field_data, "Metadata" into metadata (from API)
     const metadata = order.metadata || {};
     const customFieldData = order.custom_field_data || {};
-
-    // DEBUG: Log full metadata to debug missing fields
-    webhookLogger.info('DEBUG: Received webhook data', {
-      metadata,
-      customFieldData,
-      orderId: order.id,
-    });
 
     // Handle string or unknown type for metadata values
     // Check both new (short) and old keys for backward compatibility
